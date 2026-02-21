@@ -8,15 +8,8 @@ const API = axios.create({
 
 // 2. Add the Interceptor
 API.interceptors.request.use((req) => {
-  // ✅ Check Session Storage first (for active session)
-  let token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-  // ✅ Check Local Storage as a backup (if you add "Remember Me" later)
-  if (!token) {
-    token = localStorage.getItem("token");
-  }
-
-  // ✅ Only attach the header if a token exists
   if (token) {
     req.headers.Authorization = `Bearer ${token}`;
   }
