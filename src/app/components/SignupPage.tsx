@@ -130,7 +130,6 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
         _id: res.data._id,
         name: res.data.name,
         email: res.data.email,
-        phone: res.data.phone,
       }));
 
       onNavigate("dashboard");

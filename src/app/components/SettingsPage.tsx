@@ -30,7 +30,6 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
   // --- PROFILE STATE ---
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
 
   // --- MODAL STATES ---
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -67,7 +66,6 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
         // Update State with real database values
         setName(data.name || "");
         setEmail(data.email || "");
-        setPhone(data.phone || "");
 
         // Sync user mode from backend
         if (data.userMode && onModeChange) {
@@ -85,7 +83,6 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
           const user = JSON.parse(storedUser);
           setName(user.name || "");
           setEmail(user.email || "");
-          setPhone(user.phone || "");
         }
       }
     };
@@ -111,7 +108,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
       setLoading(true);
 
       // 1. Call API
-      const { data } = await updateProfile({ name, email, phone });
+      const { data } = await updateProfile({ name, email });
 
       // 2. Update Local Storage safely
       let storedUser = localStorage.getItem("user");
@@ -122,7 +119,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
       }
 
       const currentUser = JSON.parse(storedUser || "{}");
-      const updatedUser = { ...currentUser, name: data.name, phone: data.phone };
+      const updatedUser = { ...currentUser, name: data.name };
 
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
@@ -291,15 +288,6 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="mt-2 bg-gray-100 dark:bg-gray-600 dark:text-gray-300 "
-            />
-          </div>
-          <div>
-            <Label className="dark:text-gray-300">Phone Number</Label>
-            <Input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="mt-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
             />
           </div>
           <Button
