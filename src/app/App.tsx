@@ -11,6 +11,7 @@ import { SettingsPage } from "./components/SettingsPage";
 import { ForgotPasswordPage } from "./components/ForgotPasswordPage";
 import { DuesPage } from "./components/DuesPage";
 import { SalaryPage } from "./components/SalaryPage";
+import { RemindersPage } from "./components/RemindersPage";
 
 export default function App() {
   const token = localStorage.getItem("token");
@@ -25,6 +26,16 @@ export default function App() {
     return localStorage.getItem("userMode") || "student";
   });
 
+  // ✅ Dynamic tab title + favicon based on mode
+  useEffect(() => {
+    const isEmployee = userMode === "employee";
+    document.title = isEmployee ? "CampusSpend Pro" : "CampusSpend";
+    const favicon = document.getElementById("favicon") as HTMLLinkElement | null;
+    if (favicon) {
+      favicon.href = isEmployee ? "/logo-employee.png" : "/logo-student.png";
+    }
+  }, [userMode]);
+
   // ✅ FIX 2: Added "dashboard" to this list so it gets protected too
   const protectedPages = [
     "dashboard",
@@ -35,6 +46,7 @@ export default function App() {
     "salary",
     "analytics",
     "settings",
+    "reminders",
   ];
 
   const handleNavigate = (page: string) => {
@@ -101,6 +113,7 @@ export default function App() {
       {currentPage === "salary" && <SalaryPage />}
       {currentPage === "analytics" && <AnalyticsPage userMode={userMode} />}
       {currentPage === "settings" && <SettingsPage onNavigate={handleNavigate} userMode={userMode} onModeChange={handleModeChange} />}
+      {currentPage === "reminders" && <RemindersPage userMode={userMode} />}
     </Dashboard>
   );
 }

@@ -5,13 +5,13 @@ import { Badge } from "./ui/badge";
 import {
   LayoutDashboard, Receipt, Wallet, Target, BarChart3, Settings,
   Bell, TrendingUp, TrendingDown, HandCoins, Briefcase,
-  ChevronRight, Menu, X, Smartphone, CreditCard, Banknote, DollarSign
+  ChevronRight, Menu, X, Smartphone, CreditCard, Banknote, DollarSign, CalendarDays, RepeatIcon
 } from "lucide-react";
 import { getCategoryIcon, getCategoryColor } from "../data/mockData";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // ✅ Import Both Services
-import { getTransactions, getBudgets, getDues, getSalaries } from "../../api/services";
+import { getTransactions, getBudgets, getDues, getSalaries, getReminders } from "../../api/services";
 
 interface DashboardProps {
   onNavigate: (page: string) => void;
@@ -48,6 +48,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
   const [totalBudget, setTotalBudget] = useState(0);
   const [duesData, setDuesData] = useState<any[]>([]);
   const [salaryData, setSalaryData] = useState<any>(null);
+  const [remindersData, setRemindersData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // ✅ Fetch Transactions AND Budgets
@@ -85,6 +86,17 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
               if (entries.length > 0) setSalaryData(entries[0]);
             } catch { setSalaryData(null); }
           }
+
+          // 5. Fetch Reminders
+          try {
+            const remindersRes = await getReminders();
+            const allReminders = Array.isArray(remindersRes.data) ? remindersRes.data : [];
+            const upcoming = allReminders
+              .filter((r: any) => !r.isPaid)
+              .sort((a: any, b: any) => new Date(a.reminderDate).getTime() - new Date(b.reminderDate).getTime())
+              .slice(0, 3);
+            setRemindersData(upcoming);
+          } catch { setRemindersData([]); }
 
         } catch (error) {
           console.error("Failed to load dashboard data", error);
@@ -185,6 +197,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
     { id: 'budgets', icon: Wallet, label: 'Budgets' },
     { id: 'savings', icon: Target, label: 'Savings Goals' },
     { id: 'dues', icon: HandCoins, label: isEmployee ? 'EMI / Loans' : 'Dues' },
+    { id: 'reminders', icon: CalendarDays, label: 'Reminders' },
   ];
 
   const employeeOnlyItems = [
@@ -543,6 +556,52 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                 </ResponsiveContainer>
               </Card>
             </div>
+
+            {/* ✅ Upcoming Reminders Widget */}
+            {remindersData.length > 0 && (
+              <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className={`w-5 h-5 ${isEmployee ? 'text-blue-500' : 'text-purple-500'}`} />
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Upcoming Reminders</h3>
+                  </div>
+                  <Button
+                    variant="ghost" size="sm"
+                    className={`${isEmployee ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`}
+                    onClick={() => onNavigate('reminders')}
+                  >
+                    View All <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {remindersData.map((r: any) => {
+                    const isOverdue = new Date(r.reminderDate) < new Date();
+                    return (
+                      <div key={r._id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isOverdue ? 'bg-red-100 dark:bg-red-900/30' : 'bg-purple-100 dark:bg-purple-900/30'}`}>
+                            <CalendarDays className={`w-4 h-4 ${isOverdue ? 'text-red-500' : 'text-purple-500'}`} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
+                              {r.title}
+                              {r.isRecurring && <RepeatIcon className="w-3 h-3 text-purple-400" />}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {new Date(r.reminderDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                              {isOverdue && <span className="text-red-500 ml-1 font-medium">· Overdue</span>}
+                            </p>
+                          </div>
+                        </div>
+                        <p className={`font-bold text-base ${isOverdue ? 'text-red-500' : 'text-purple-600 dark:text-purple-400'}`}>
+                          ₹{Number(r.amount).toLocaleString()}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
 
             {/* ✅ RESTORED: Recent Transactions Table */}
             <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg">

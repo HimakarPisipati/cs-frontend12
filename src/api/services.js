@@ -66,3 +66,11 @@ export const getSalaries = () => API.get("/salary");
 export const addSalary = (data) => API.post("/salary", data);
 export const updateSalary = (id, data) => API.put(`/salary/${id}`, data);
 export const deleteSalary = (id) => API.delete(`/salary/${id}`);
+
+// ==============================
+// 📅 REMINDERS
+// ==============================
+export const getReminders = () => API.get("/reminders");
+export const addReminder = (data) => API.post("/reminders", data);
+export const updateReminder = (id, data) => API.put(`/reminders/${id}`, data);
+export const deleteReminder = (id) => API.delete(`/reminders/${id}`);
