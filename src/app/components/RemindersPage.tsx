@@ -130,26 +130,99 @@ export function RemindersPage({ userMode = 'student' }: { userMode?: string }) {
   // ── Derived ───────────────────────────────────────────────────────────────────
   // Dates that have reminders — for calendar dots
   const reminderDates = useMemo(() => {
-    const map: Record<string, "upcoming" | "overdue" | "paid"> = {};
+    const map: Record<string, "upcoming" | "overdue" | "paid" | "recurring-future"> = {};
+    
     reminders.forEach((r) => {
       const d = new Date(r.reminderDate);
       const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      
+      // 1. Direct record status
       if (r.isPaid) map[key] = "paid";
       else if (isOverdue(r.reminderDate)) map[key] = "overdue";
       else map[key] = "upcoming";
+
+      // 2. Projection for recurring reminders into CURRENTLY VIEWED month
+      if (r.isRecurring) {
+        const lastDayInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+        const targetDay = Math.min(d.getDate(), lastDayInMonth);
+        const projectedKey = `${calYear}-${calMonth}-${targetDay}`;
+        
+        const projectedDateAtMidnight = new Date(calYear, calMonth, targetDay);
+        const createdDate = r.createdAt ? new Date(r.createdAt) : new Date(0);
+        const createdMonthStart = new Date(createdDate.getFullYear(), createdDate.getMonth(), 1);
+
+        if (projectedDateAtMidnight >= createdMonthStart) {
+          if (projectedDateAtMidnight < d && !map[projectedKey]) {
+            map[projectedKey] = "paid";
+          } else if (projectedDateAtMidnight > d && !map[projectedKey]) {
+            map[projectedKey] = "upcoming";
+          }
+        }
+      }
     });
     return map;
-  }, [reminders]);
+  }, [reminders, calYear, calMonth, theme.dotUpcoming]);
 
-  // Reminders for selected date (or all upcoming if none selected)
+  // Reminders for selected date (or all falling in current calendar month if none selected)
   const displayedReminders = useMemo(() => {
-    if (selectedDate) {
-      return reminders.filter((r) => datesEqual(new Date(r.reminderDate), selectedDate));
-    }
-    return reminders.filter((r) => !r.isPaid).sort(
-      (a, b) => new Date(a.reminderDate).getTime() - new Date(b.reminderDate).getTime()
-    );
-  }, [reminders, selectedDate]);
+    const filterAndMap = (r: Reminder) => {
+      const d = new Date(r.reminderDate);
+      
+      if (selectedDate) {
+        // 1. Direct match on selected date
+        if (datesEqual(d, selectedDate)) return { ...r, visualDate: d };
+        
+        // 2. Recurring projection match on selected date
+        if (r.isRecurring) {
+          const lastDayOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).getDate();
+          const targetDay = Math.min(d.getDate(), lastDayOfMonth);
+          if (selectedDate.getDate() === targetDay) {
+            const createdDate = r.createdAt ? new Date(r.createdAt) : new Date(0);
+            const createdMonthStart = new Date(createdDate.getFullYear(), createdDate.getMonth(), 1);
+            if (selectedDate >= createdMonthStart) {
+              if (selectedDate < d) {
+                return { ...r, isPaid: true, visualDate: selectedDate };
+              } else {
+                return { ...r, visualDate: selectedDate };
+              }
+            }
+          }
+        }
+        return null;
+      }
+
+      // Default: Toggle by currently viewed calendar month
+      // 1. Direct match in this month
+      if (d.getMonth() === calMonth && d.getFullYear() === calYear) {
+        return { ...r, visualDate: d };
+      }
+
+      // 2. Project recurring reminder into this month
+      if (r.isRecurring) {
+        const lastDayOfCalMonth = new Date(calYear, calMonth + 1, 0).getDate();
+        const targetDay = Math.min(d.getDate(), lastDayOfCalMonth);
+        const projectedDate = new Date(calYear, calMonth, targetDay);
+        
+        const createdDate = r.createdAt ? new Date(r.createdAt) : new Date(0);
+        const createdMonthStart = new Date(createdDate.getFullYear(), createdDate.getMonth(), 1);
+
+        if (projectedDate >= createdMonthStart) {
+          if (projectedDate < d) {
+            return { ...r, isPaid: true, visualDate: projectedDate };
+          } else {
+            return { ...r, visualDate: projectedDate };
+          }
+        }
+      }
+
+      return null;
+    };
+
+    return reminders
+      .map(filterAndMap)
+      .filter((r): r is (Reminder & { visualDate: Date }) => r !== null)
+      .sort((a, b) => a.visualDate.getTime() - b.visualDate.getTime());
+  }, [reminders, selectedDate, calMonth, calYear]);
 
   const unpaidCount = reminders.filter((r) => !r.isPaid).length;
   const overdueCount = reminders.filter((r) => !r.isPaid && isOverdue(r.reminderDate)).length;
@@ -442,7 +515,7 @@ export function RemindersPage({ userMode = 'student' }: { userMode?: string }) {
                     <div className="flex-1 min-w-0">
                       {/* Title row */}
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <p className={`font-semibold text-gray-900 dark:text-white text-base ${r.isPaid ? "line-through text-gray-400" : ""}`}>
+                        <p className={`font-semibold text-gray-900 dark:text-white text-base ${r.isPaid ? "line-through opacity-50" : ""}`}>
                           {r.title}
                         </p>
                         {r.isRecurring && (
@@ -463,7 +536,7 @@ export function RemindersPage({ userMode = 'student' }: { userMode?: string }) {
                       </div>
 
                       {/* Amount */}
-                      <p className={`text-2xl font-bold ${overdue ? "text-red-500" : r.isPaid ? "text-gray-400" : theme.amountColor}`}>
+                      <p className={`text-2xl font-bold ${overdue ? "text-red-500" : r.isPaid ? "line-through opacity-40" : theme.amountColor}`}>
                         ₹{Number(r.amount).toLocaleString()}
                       </p>
 
@@ -471,7 +544,7 @@ export function RemindersPage({ userMode = 'student' }: { userMode?: string }) {
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-sm text-gray-500 dark:text-gray-400">
                         <span className="flex items-center gap-1">
                           <CalendarDays className="w-3.5 h-3.5" />
-                          {new Date(r.reminderDate).toLocaleDateString("en-IN", {
+                          {r.visualDate.toLocaleDateString("en-IN", {
                             day: "numeric", month: "short", year: "numeric",
                           })}
                         </span>

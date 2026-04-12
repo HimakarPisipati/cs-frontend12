@@ -223,7 +223,10 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
                 size="lg"
-                onClick={() => onNavigate('dashboard')}
+                onClick={() => {
+                  localStorage.setItem("demoLogin", "true");
+                  onNavigate('login');
+                }}
                 className={`bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700' : 'from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'} text-lg px-8 h-14`}
               >
                 Try Demo
@@ -356,7 +359,10 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
             </Button>
             <Button
               size="lg"
-              onClick={() => onNavigate('dashboard')}
+              onClick={() => {
+                localStorage.setItem("demoLogin", "true");
+                onNavigate('login');
+              }}
               className="text-lg px-8 h-14 border-2 border-white text-white bg-transparent hover:bg-white/10"
             >
               Try Demo

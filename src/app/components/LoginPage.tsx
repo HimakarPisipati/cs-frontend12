@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -24,6 +24,41 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
   const accentText = isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400';
   const accentHover = isEmp ? 'hover:text-blue-700 dark:hover:text-blue-300' : 'hover:text-purple-700 dark:hover:text-purple-300';
   const brandName = isEmp ? 'CampusSpend Pro' : 'CampusSpend';
+
+  useEffect(() => {
+    // Check if we arrived here from "Try Demo" button
+    const isDemo = localStorage.getItem("demoLogin") === "true";
+    if (isDemo) {
+      localStorage.removeItem("demoLogin");
+      handleDemoLogin();
+    }
+  }, []);
+
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    try {
+      const demoEmail = "demo@campispend.com";
+      const demoPassword = "demo1234";
+      const res = await login({ email: demoEmail, password: demoPassword, user_mode: selectedMode });
+
+      // 🔥 Save token and user
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userMode", res.data.userMode || "student");
+      localStorage.setItem("user", JSON.stringify({
+        _id: res.data._id,
+        name: res.data.name,
+        email: res.data.email,
+        userMode: res.data.userMode || "student",
+      }));
+
+      onNavigate("dashboard");
+    } catch (err: any) {
+      console.error("Demo login failed:", err);
+      // Fallback: stay on login page but reset loading
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
