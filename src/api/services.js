@@ -73,4 +73,16 @@ export const deleteSalary = (id) => API.delete(`/salary/${id}`);
 export const getReminders = () => API.get("/reminders");
 export const addReminder = (data) => API.post("/reminders", data);
 export const updateReminder = (id, data) => API.put(`/reminders/${id}`, data);
-export const deleteReminder = (id) => API.delete(`/reminders/${id}`);
+export const deleteReminder = (id) => API.delete(`/reminders/${id}`);
+
+// ==============================
+// ⭐ REVIEWS
+// ==============================
+export const getReviews = () => API.get("/reviews");
+export const getMyReviews = () => API.get("/reviews/me");
+export const addReview = (data) => API.post("/reviews", data);
+
+export const updateReview = (id, data) => API.put(`/reviews/${id}`, data);
+export const deleteReview = (id) => API.delete(`/reviews/${id}`);
+
+

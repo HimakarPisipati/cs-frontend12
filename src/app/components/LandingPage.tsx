@@ -17,12 +17,30 @@ import {
   Briefcase,
   GraduationCap,
   DollarSign,
-  BarChart3
+  BarChart3,
+  Edit2,
+  Trash2,
+  MoreVertical
 } from "lucide-react";
+
+
+
+import { getReviews, addReview, updateReview, deleteReview } from "../../api/services";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "./ui/dialog";
+import { Textarea } from "./ui/textarea";
 
 interface LandingPageProps {
   onNavigate: (page: string) => void;
 }
+
 
 export function LandingPage({ onNavigate }: LandingPageProps) {
   const [isDark, setIsDark] = useState(() => {
@@ -97,32 +115,95 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
 
   const features = isEmp ? employeeFeatures : studentFeatures;
 
-  const testimonials = [
-    {
-      name: "Dhruba Jyothi Mahata",
-      role: "Electronics and Computing, Pre-final year",
-      image: "/testimonials/dhruba.jpeg",
-      content:
-        "CampusSpend helped me save ₹5,000 in just 2 months! Now I can finally afford that trip to Goa.",
-      rating: 5,
-    },
-    {
-      name: "Suryavardhan Chaluvadi",
-      role: "Computer Science Engineering, Pre-final year",
-      image: "/testimonials/surya.jpeg",
-      content:
-        "Best expense tracker for students! Simple UI and the insights actually help me cut unnecessary spending.",
-      rating: 5,
-    },
-    {
-      name: "Vishnu Sai Bhattu",
-      role: "Electronics and Computing, Pre-final year",
-      image: "/testimonials/vishnu.jpeg",
-      content:
-        "I love how it shows me where my pocket money goes. The category breakdown is super helpful!",
-      rating: 5,
-    },
-  ];
+  // --- Reviews State & Logic ---
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isAllReviewsModalOpen, setIsAllReviewsModalOpen] = useState(false);
+  const [editingReview, setEditingReview] = useState<any>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+
+
+
+  const fetchReviews = async () => {
+    try {
+      const res = await getReviews();
+      if (res.data && res.data.length > 0) {
+        setReviews(res.data);
+      } else {
+        setReviews([]);
+      }
+
+    } catch (err) {
+      console.error("Failed to fetch reviews:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+    
+    // Check for pending review action after login
+    const pending = localStorage.getItem("pendingAction");
+    if (pending === "writeReview" && localStorage.getItem("token")) {
+      setIsReviewModalOpen(true);
+      localStorage.removeItem("pendingAction");
+    }
+  }, []);
+
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please login to write a review!");
+      localStorage.setItem("pendingAction", "writeReview");
+      onNavigate("login");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      if (editingReview) {
+        await updateReview(editingReview.id, { rating, comment });
+        alert("Review updated! ⭐");
+      } else {
+        await addReview({ rating, comment });
+        alert("Thank you for your review! ⭐");
+      }
+      setIsReviewModalOpen(false);
+      setEditingReview(null);
+      setComment("");
+      setRating(5);
+      fetchReviews(); // Refresh list
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Failed to submit review");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteReview = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete your review?")) return;
+    try {
+      await deleteReview(id);
+      fetchReviews();
+      alert("Review deleted");
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Failed to delete review");
+    }
+  };
+
+  const openEditModal = (review: any) => {
+    setEditingReview(review);
+    setRating(review.rating);
+    setComment(review.comment);
+    setIsReviewModalOpen(true);
+  };
+
+
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${isEmp ? 'from-blue-50 via-cyan-50 to-green-50' : 'from-purple-50 via-blue-50 to-green-50'} dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 transition-colors duration-300`}>
@@ -311,29 +392,191 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
                 : 'Join thousands of students who are taking control of their finances'
               }
             </p>
+            <div className="mt-8 flex justify-center gap-4">
+              <Dialog open={isReviewModalOpen} onOpenChange={(open) => {
+                setIsReviewModalOpen(open);
+                if (!open) setEditingReview(null);
+              }}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (!localStorage.getItem("token")) {
+                        localStorage.setItem("pendingAction", "writeReview");
+                        onNavigate("login");
+                      } else {
+                        setEditingReview(null);
+                        setRating(5);
+                        setComment("");
+                        setIsReviewModalOpen(true);
+                      }
+                    }}
+
+                    className={`border-2 ${isEmp ? 'border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400' : 'border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400'} hover:bg-white dark:hover:bg-gray-800`}
+                  >
+                    Write a Review
+                  </Button>
+
+                  <DialogContent className="sm:max-w-md dark:bg-gray-900 dark:text-white dark:border-gray-800">
+                    <DialogHeader>
+                      <DialogTitle>{editingReview ? "Edit your review" : "Share your experience"}</DialogTitle>
+                    </DialogHeader>
+
+                  <form onSubmit={handleReviewSubmit} className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Rating</label>
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setRating(star)}
+                            className="focus:outline-none transition-transform active:scale-90"
+                          >
+                            <Star
+                              className={`w-8 h-8 ${rating >= star ? "fill-yellow-400 text-yellow-400" : "text-gray-300 dark:text-gray-600"
+                                }`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Your Review</label>
+                      <Textarea
+                        placeholder="What do you think about CampusSpend?"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        className="h-32 dark:bg-gray-800 dark:border-gray-700"
+                        required
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        type="submit"
+                        disabled={submitting}
+                        className={`w-full bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'}`}
+                      >
+                        {submitting ? "Submitting..." : (editingReview ? "Update Review" : "Submit Review")}
+                      </Button>
+
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              {reviews.length > 3 && (
+                <Dialog open={isAllReviewsModalOpen} onOpenChange={setIsAllReviewsModalOpen}>
+
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsAllReviewsModalOpen(true)}
+                    className={`${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'} font-semibold hover:bg-white/50 dark:hover:bg-gray-800/50`}
+                  >
+                    See All Reviews ({reviews.length})
+                  </Button>
+                  <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto dark:bg-gray-900 dark:text-white dark:border-gray-800 custom-scrollbar">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl mb-4">All User Reviews</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid sm:grid-cols-2 gap-4 py-4">
+                      {reviews.map((testimonial, index) => (
+                        <Card
+                          key={index}
+                          className="p-4 bg-gray-50 dark:bg-gray-800/50 border-0 shadow-sm flex flex-col justify-between"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex gap-1">
+                              {[...Array(testimonial.rating)].map((_, i) => (
+                                <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                              ))}
+                            </div>
+                            {currentUser && (currentUser._id === testimonial.user_id || currentUser.id === testimonial.user_id) && (
+
+
+                              <div className="flex gap-2">
+                                <button 
+                                  onClick={() => {
+                                    setIsAllReviewsModalOpen(false);
+                                    openEditModal(testimonial);
+                                  }}
+                                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-500 transition-colors"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    handleDeleteReview(testimonial.id);
+                                  }}
+                                  className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg text-red-500 transition-colors"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 italic">"{testimonial.comment || testimonial.content}"</p>
+                          <div>
+                            <div className="font-semibold text-sm text-gray-900 dark:text-white">{testimonial.user_name || testimonial.name}</div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400 capitalize">{testimonial.user_mode || testimonial.role}</div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
+            {reviews.slice(0, 3).map((testimonial, index) => (
+
               <Card
                 key={index}
-                className="p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg"
+                className="p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg flex flex-col justify-between"
               >
-                <div className="flex gap-1 mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  ))}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex gap-1">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  {currentUser && (currentUser._id === testimonial.user_id || currentUser.id === testimonial.user_id) && (
+
+
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => openEditModal(testimonial)}
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-500 transition-colors"
+                        title="Edit Review"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteReview(testimonial.id)}
+                        className="p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg text-red-500 transition-colors"
+                        title="Delete Review"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <p className="text-gray-700 dark:text-gray-300 mb-6 italic">"{testimonial.content}"</p>
+
+                  <p className="text-gray-700 dark:text-gray-300 mb-6 italic">"{testimonial.comment || testimonial.content}"</p>
+
                 <div className="flex items-center gap-3">
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{testimonial.role}</div>
+                    <div className="font-semibold text-gray-900 dark:text-white">{testimonial.user_name || testimonial.name}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 capitalize">{testimonial.user_mode || testimonial.role}</div>
                   </div>
                 </div>
               </Card>
             ))}
           </div>
+
+
         </div>
       </section>
 

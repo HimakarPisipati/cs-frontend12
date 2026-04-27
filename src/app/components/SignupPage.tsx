@@ -65,7 +65,13 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
           name: res.data.name,
           email: res.data.email,
         }));
-        onNavigate("dashboard");
+        const pending = localStorage.getItem("pendingAction");
+        if (pending === "writeReview") {
+          onNavigate("landing");
+        } else {
+          onNavigate("dashboard");
+        }
+
       }
     } catch (err: any) {
       console.log(err);
@@ -132,7 +138,13 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
         email: res.data.email,
       }));
 
-      onNavigate("dashboard");
+      const pending = localStorage.getItem("pendingAction");
+      if (pending === "writeReview") {
+        onNavigate("landing");
+      } else {
+        onNavigate("dashboard");
+      }
+
     } catch (err: any) {
       console.log(err);
       alert(err?.response?.data?.message || "Invalid OTP ❌");
@@ -404,43 +416,7 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
             </Button>
           </form>
 
-          {/* Social logins are still mock */}
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                  Or continue with
-                </span>
-              </div>
-            </div>
 
-            <div className="mt-6 grid grid-cols-2 gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-12 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
-                onClick={() =>
-                  alert("Google signup not implemented yet. Use normal signup ✅")
-                }
-              >
-                Google
-              </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="h-12 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
-                onClick={() =>
-                  alert("Apple signup not implemented yet. Use normal signup ✅")
-                }
-              >
-                Apple
-              </Button>
-            </div>
-          </div>
 
           <p className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
             Already have an account?{" "}

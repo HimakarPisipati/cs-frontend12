@@ -51,7 +51,13 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         userMode: res.data.userMode || "student",
       }));
 
-      onNavigate("dashboard");
+      const pending = localStorage.getItem("pendingAction");
+      if (pending === "writeReview") {
+        onNavigate("landing");
+      } else {
+        onNavigate("dashboard");
+      }
+
     } catch (err: any) {
       console.error("Demo login failed:", err);
       // Fallback: stay on login page but reset loading
@@ -78,13 +84,19 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         userMode: res.data.userMode || "student",
       }));
 
-      onNavigate("dashboard");
+      const pending = localStorage.getItem("pendingAction");
+      if (pending === "writeReview") {
+        onNavigate("landing");
+      } else {
+        onNavigate("dashboard");
+      }
     } catch (err: any) {
       alert(err?.response?.data?.message || "Login failed ❌");
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${isEmp ? 'from-blue-50 via-cyan-50 to-green-50' : 'from-purple-50 via-blue-50 to-green-50'} dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 flex items-center justify-center p-4 transition-colors`}>

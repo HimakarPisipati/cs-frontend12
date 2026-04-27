@@ -5,10 +5,13 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import {
-  User, Bell, Palette, Lock, Download, Trash2, Moon, Sun, X, AlertTriangle, ShieldCheck, KeyRound, Briefcase, GraduationCap
+  User, Bell, Palette, Lock, Download, Trash2, Moon, Sun, X, AlertTriangle, ShieldCheck, KeyRound, Briefcase, GraduationCap, Star, Edit2, MessageSquare
 } from "lucide-react";
+
 // ✅ Import updateProfile here
-import { changePassword, deleteAccount, updateProfile, getUserProfile, forgotPassword, resetPassword, switchMode } from "../../api/services";
+import { changePassword, deleteAccount, updateProfile, getUserProfile, forgotPassword, resetPassword, switchMode, getReviews, getMyReviews, addReview, updateReview, deleteReview } from "../../api/services";
+import { Textarea } from "./ui/textarea";
+
 
 interface SettingsPageProps {
   onNavigate: (page: string) => void;
@@ -57,6 +60,18 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
   const [resendCooldown, setResendCooldown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // --- REVIEWS STATE ---
+  const [allReviews, setAllReviews] = useState<any[]>([]);
+  const [myReviews, setMyReviews] = useState<any[]>([]);
+  const [reviewTab, setReviewTab] = useState<'all' | 'me'>('all');
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+
+
   // ✅ LOAD USER DATA FROM SERVER (The Robust Way)
   useEffect(() => {
     const fetchUserData = async () => {
@@ -88,7 +103,66 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
     };
 
     fetchUserData();
+    fetchReviews();
   }, []);
+
+  const fetchReviews = async () => {
+    try {
+      setReviewsLoading(true);
+      const [allRes, myRes] = await Promise.all([
+        getReviews(),
+        getMyReviews()
+      ]);
+      setAllReviews(allRes.data);
+      setMyReviews(myRes.data);
+    } catch (err) {
+      console.error("Failed to fetch reviews:", err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!comment) return;
+    setLoading(true);
+    try {
+      if (editingReviewId) {
+        await updateReview(editingReviewId, { rating, comment });
+        alert("Review updated! ✅");
+      } else {
+        await addReview({ rating, comment });
+        alert("Review submitted! Thank you! ⭐");
+      }
+      setComment("");
+      setRating(5);
+      setEditingReviewId(null);
+      fetchReviews();
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Failed to submit review");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditReview = (review: any) => {
+    setEditingReviewId(review.id);
+    setRating(review.rating);
+    setComment(review.comment);
+    // Scroll to form? 
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  };
+
+  const handleDeleteReview = async (id: string) => {
+    if (!window.confirm("Delete this review?")) return;
+    try {
+      await deleteReview(id);
+      fetchReviews();
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Failed to delete review");
+    }
+  };
+
 
   // ✅ DARK MODE HANDLER
   useEffect(() => {
@@ -719,6 +793,143 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
           </Card>
         </div>
       )}
+
+      {/* 5. Reviews Management Section */}
+      <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
+            <MessageSquare className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Community & Reviews</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Share your feedback and see what others say</p>
+          </div>
+        </div>
+
+        {/* Write a Review Sub-section */}
+        <div className="mb-8 p-6 bg-gray-50 dark:bg-gray-700/50 rounded-2xl border border-gray-100 dark:border-gray-700">
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
+            {editingReviewId ? "Edit your review" : "Write a new review"}
+          </h4>
+          <form onSubmit={handleReviewSubmit} className="space-y-4">
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(star)}
+                  className="focus:outline-none transition-transform active:scale-90"
+                >
+                  <Star
+                    className={`w-6 h-6 ${rating >= star ? "fill-yellow-400 text-yellow-400" : "text-gray-300 dark:text-gray-600"}`}
+                  />
+                </button>
+              ))}
+            </div>
+            <Textarea
+              placeholder="Tell us what you think about CampusSpend..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="dark:bg-gray-800 dark:border-gray-700 min-h-[100px]"
+              required
+            />
+            <div className="flex gap-2">
+              <Button
+                type="submit"
+                disabled={loading}
+                className={`bg-gradient-to-r ${userMode === 'employee' ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} text-white`}
+              >
+                {loading ? "Submitting..." : (editingReviewId ? "Update Review" : "Post Review")}
+              </Button>
+              {editingReviewId && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setEditingReviewId(null);
+                    setComment("");
+                    setRating(5);
+                  }}
+                  className="dark:text-gray-400"
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </form>
+        </div>
+
+        {/* View Reviews Sub-section */}
+        <div className="space-y-4">
+          <div className="flex gap-4 border-b border-gray-100 dark:border-gray-700 mb-4">
+            <button
+              onClick={() => setReviewTab('all')}
+              className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${reviewTab === 'all'
+                ? (userMode === 'employee' ? 'border-blue-500 text-blue-600' : 'border-purple-500 text-purple-600')
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+            >
+              All Users ({allReviews.length})
+            </button>
+            <button
+              onClick={() => setReviewTab('me')}
+              className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${reviewTab === 'me'
+                ? (userMode === 'employee' ? 'border-blue-500 text-blue-600' : 'border-purple-500 text-purple-600')
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+            >
+              Made by You ({myReviews.length})
+            </button>
+          </div>
+
+          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+            {(reviewTab === 'all' ? allReviews : myReviews).length === 0 ? (
+              <div className="text-center py-8 text-gray-500 italic">
+                No reviews found in this category.
+              </div>
+            ) : (
+              (reviewTab === 'all' ? allReviews : myReviews).map((rev) => (
+                <div
+                  key={rev.id}
+                  className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700/50"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex gap-0.5 mb-1">
+                        {[...Array(rev.rating)].map((_, i) => (
+                          <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mb-1">
+                        {rev.user_name} <span className="text-[10px] text-gray-500 dark:text-gray-400 font-normal ml-2 capitalize">({rev.user_mode})</span>
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 italic">"{rev.comment}"</p>
+                    </div>
+                    {currentUser && (currentUser._id === rev.user_id || currentUser.id === rev.user_id) && (
+
+                      <div className="flex gap-1 ml-4">
+                        <button
+                          onClick={() => handleEditReview(rev)}
+                          className="p-1.5 hover:bg-white dark:hover:bg-gray-600 rounded-lg text-gray-500 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReview(rev.id)}
+                          className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg text-red-500 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </Card>
 
     </div>
   );

@@ -50,13 +50,19 @@ export default function App() {
   ];
 
   const handleNavigate = (page: string) => {
-    // If going back to landing/login, ensure we clear the token (Logout)
-    if (page === "landing" || page === "login") {
-      localStorage.removeItem("token");
+    // ❌ REMOVED: Automatic logout on landing/login navigation
+    // We should only logout via an explicit logout button.
+    
+    if (page === "login" && localStorage.getItem("token")) {
+      // If already logged in and trying to go to login page, send to dashboard
+      setCurrentPage("dashboard");
+      return;
     }
+
     setCurrentPage(page);
     window.scrollTo(0, 0);
   };
+
 
   const handleModeChange = (mode: string) => {
     setUserMode(mode);
