@@ -58,14 +58,26 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
   };
 
   useEffect(() => {
+    // Update browser tab title based on mode
+    document.title = isEmp ? "CampusSpend Pro" : "CampusSpend";
+    
+    // Update favicon based on mode
+    const favicon = document.getElementById("favicon") as HTMLLinkElement;
+    if (favicon) {
+      favicon.href = isEmp ? "/logo-employee.png" : "/logo-student.png";
+    }
+
     if (isDark) {
+
+
       document.documentElement.classList.add("dark");
       localStorage.setItem("theme", "dark");
     } else {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
-  }, [isDark]);
+  }, [isDark, isEmp]);
+
 
   const studentFeatures = [
     {
@@ -210,22 +222,29 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
       {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <div className={`w-10 h-10 bg-gradient-to-br ${isEmp ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-xl flex items-center justify-center`}>
-                <Wallet className="w-6 h-6 text-white" />
+          <div className="flex items-center justify-between h-16">
+            {/* Logo Section */}
+            <div className="flex-1 flex items-center">
+              <div className="flex items-center gap-2">
+                <div className={`w-10 h-10 bg-gradient-to-br ${isEmp ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-xl flex items-center justify-center`}>
+                  <Wallet className="w-6 h-6 text-white" />
+                </div>
+                <span className={`text-xl font-bold bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} bg-clip-text text-transparent`}>
+                  {isEmp ? 'CampusSpend Pro' : 'CampusSpend'}
+                </span>
               </div>
-              <span className={`text-xl font-bold bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} bg-clip-text text-transparent`}>
-                {isEmp ? 'CampusSpend Pro' : 'CampusSpend'}
-              </span>
             </div>
 
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Features</a>
-              <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">Testimonials</a>
+            {/* Centered Navigation Links (Nudged slightly right) */}
+            <div className="hidden md:flex flex-1 items-center justify-center gap-8 pl-20">
+              <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Features</a>
+              <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Testimonials</a>
             </div>
 
-            <div className="flex items-center gap-3">
+
+            {/* Action Section */}
+            <div className="flex-1 flex items-center justify-end gap-3">
+
               {/* Mode Toggle */}
               <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-full p-0.5">
                 <button
