@@ -94,25 +94,39 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
               </p>
               
               <div className="flex flex-wrap gap-4">
-                <Button 
-                  size="lg" 
-                  className="bg-black hover:bg-gray-800 text-white rounded-2xl h-16 px-8 flex items-center gap-3 transition-transform hover:scale-105"
-                >
-                  <div className="text-left">
-                    <div className="text-[10px] uppercase font-bold opacity-70">Download on the</div>
-                    <div className="text-xl font-bold leading-none">App Store</div>
+                <div className="relative group">
+                  <Button 
+                    disabled
+                    size="lg" 
+                    className="bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 rounded-2xl h-16 px-8 flex items-center gap-3 cursor-not-allowed border border-gray-100 dark:border-gray-700"
+                  >
+                    <Apple className="w-8 h-8 opacity-50" />
+                    <div className="text-left">
+                      <div className="text-[10px] uppercase font-bold opacity-50">Available on</div>
+                      <div className="text-xl font-bold leading-none">App Store</div>
+                    </div>
+                  </Button>
+                  <div className="absolute -top-3 -right-3 bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg">
+                    Coming Soon
                   </div>
-                </Button>
+                </div>
                 
-                <Button 
-                  size="lg" 
-                  className="bg-black hover:bg-gray-800 text-white rounded-2xl h-16 px-8 flex items-center gap-3 transition-transform hover:scale-105"
+                <a 
+                  href="/CampusSpend.apk" 
+                  download="CampusSpend.apk"
+                  className="inline-flex items-center"
                 >
-                  <div className="text-left">
-                    <div className="text-[10px] uppercase font-bold opacity-70">Get it on</div>
-                    <div className="text-xl font-bold leading-none">Google Play</div>
-                  </div>
-                </Button>
+                  <Button 
+                    size="lg" 
+                    className="bg-black hover:bg-gray-800 text-white rounded-2xl h-16 px-8 flex items-center gap-3 transition-transform hover:scale-105"
+                  >
+                    <Play className="w-8 h-8 fill-white" />
+                    <div className="text-left">
+                      <div className="text-[10px] uppercase font-bold opacity-70">Download for</div>
+                      <div className="text-xl font-bold leading-none">Android APK</div>
+                    </div>
+                  </Button>
+                </a>
               </div>
 
               <div className="mt-8 flex items-center gap-6">
