@@ -112,7 +112,21 @@ export function TutorialOverlay({ onComplete, onNavigate, userMode }: TutorialOv
     const scrollElement = () => {
       const element = document.getElementById(step.targetId);
       if (element) {
+        // 1. Standard scroll into view
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // 2. Fallback: Manual scroll calculation for absolute precision
+        const rect = element.getBoundingClientRect();
+        const absoluteElementTop = rect.top + window.pageYOffset;
+        const middle = absoluteElementTop - (window.innerHeight / 2) + (rect.height / 2);
+        
+        // Only scroll if not already in view
+        if (rect.top < 0 || rect.bottom > window.innerHeight) {
+          window.scrollTo({
+            top: middle,
+            behavior: 'smooth'
+          });
+        }
         updateCoords();
       }
     };
@@ -122,7 +136,8 @@ export function TutorialOverlay({ onComplete, onNavigate, userMode }: TutorialOv
     window.addEventListener('resize', updateCoords);
     
     // Multiple checks to account for page transitions and rendering
-    const timers = [100, 300, 500, 1000].map(ms => setTimeout(() => {
+    // Increased duration and frequency to ensure catch-up after page loads
+    const timers = [50, 100, 300, 500, 800, 1200, 2000].map(ms => setTimeout(() => {
       scrollElement();
       updateCoords();
     }, ms));
