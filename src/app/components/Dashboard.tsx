@@ -12,6 +12,7 @@ import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 
 // ✅ Import Both Services
 import { getTransactions, getBudgets, getDues, getSalaries, getReminders } from "../../api/services";
+import { TutorialOverlay } from './TutorialOverlay';
 
 interface DashboardProps {
   onNavigate: (page: string) => void;
@@ -50,6 +51,15 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
   const [salaryData, setSalaryData] = useState<any>(null);
   const [remindersData, setRemindersData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  useEffect(() => {
+    const isDemo = localStorage.getItem("isDemo") === "true";
+    const tutorialDone = sessionStorage.getItem("tutorial_completed") === "true";
+    if (isDemo && !tutorialDone && currentPage === 'dashboard') {
+      setShowTutorial(true);
+    }
+  }, [currentPage]);
 
   // ✅ Fetch Transactions AND Budgets
   useEffect(() => {
@@ -231,7 +241,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
           </div>
 
           {/* Scrollable Nav */}
-          <nav className="flex-1 overflow-y-auto px-6 space-y-2 scrollbar-hide">
+          <nav id="tutorial-nav" className="flex-1 overflow-y-auto px-6 space-y-2 scrollbar-hide">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentPage === item.id;
@@ -308,7 +318,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
       {/* Main Content */}
       <div className="lg:pl-64">
         {/* Top Bar */}
-        <header className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors">
+        <header id="tutorial-header" className="sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors">
           <div className="flex items-center justify-between px-4 lg:px-8 py-4">
             <div className="flex items-center gap-4">
               {/* ✅ RESTORED: Mobile Menu Trigger */}
@@ -336,7 +346,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
         {currentPage === 'dashboard' && (
           <main className="p-4 lg:p-8 pb-24 lg:pb-8">
             {/* Balance Cards */}
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div id="tutorial-balance" className="grid md:grid-cols-3 gap-6 mb-8">
               <Card className={`p-6 bg-gradient-to-br ${theme.gradient} text-white border-0 shadow-xl`}>
                 <div className="flex items-start justify-between mb-4">
                   <div>
@@ -505,7 +515,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
             )}
 
             {/* Charts */}
-            <div className="grid lg:grid-cols-2 gap-6 mb-8">
+            <div id="tutorial-charts" className="grid lg:grid-cols-2 gap-6 mb-8">
               <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg dark:text-white">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Spending by Category</h3>
@@ -562,7 +572,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
 
             {/* ✅ Upcoming Reminders Widget */}
             {remindersData.length > 0 && (
-              <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg">
+              <Card id="tutorial-reminders" className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <CalendarDays className={`w-5 h-5 ${isEmployee ? 'text-blue-500' : 'text-purple-500'}`} />
@@ -607,7 +617,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
             )}
 
             {/* ✅ RESTORED: Recent Transactions Table */}
-            <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg">
+            <Card id="tutorial-recent" className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Recent Transactions</h3>
                 <Button
@@ -665,6 +675,16 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
           </main>
         )}
       </div>
+
+      {showTutorial && (
+        <TutorialOverlay 
+          userMode={userMode} 
+          onComplete={() => {
+            setShowTutorial(false);
+            sessionStorage.setItem("tutorial_completed", "true");
+          }} 
+        />
+      )}
     </div>
   );
 }
