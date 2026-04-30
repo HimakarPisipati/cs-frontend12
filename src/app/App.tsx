@@ -16,6 +16,7 @@ import { PrivacyPolicyPage } from "./components/PrivacyPolicyPage";
 import { HelpCenterPage } from "./components/HelpCenterPage";
 import { ContactUsPage } from "./components/ContactUsPage";
 import { MobileAppPage } from "./components/MobileAppPage";
+import { FeaturesPage } from "./components/FeaturesPage";
 import { login } from "../api/services";
 
 export default function App() {
@@ -144,6 +145,10 @@ export default function App() {
 
   if (currentPage === "mobile-app") {
     return <MobileAppPage onNavigate={handleNavigate} userMode={userMode} />;
+  }
+
+  if (currentPage === "features") {
+    return <FeaturesPage onNavigate={handleNavigate} userMode={userMode} onModeChange={handleModeChange} />;
   }
 
   // Protected pages layout

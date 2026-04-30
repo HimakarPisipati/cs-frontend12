@@ -237,7 +237,7 @@ export function LandingPage({ onNavigate, userMode = "student", onModeChange }: 
 
             {/* Centered Navigation Links (Nudged slightly right) */}
             <div className="hidden md:flex flex-1 items-center justify-center gap-8 pl-20">
-              <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Features</a>
+              <button onClick={() => onNavigate('features')} className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Features</button>
               <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Testimonials</a>
               <button onClick={() => onNavigate('privacy-policy')} className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Privacy Policy</button>
             </div>
@@ -683,7 +683,7 @@ export function LandingPage({ onNavigate, userMode = "student", onModeChange }: 
             <div>
               <h3 className="font-semibold text-white mb-4">Product</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
+                <li><button onClick={() => onNavigate('features')} className="hover:text-white transition-colors text-sm font-normal">Features</button></li>
                 <li><button onClick={() => onNavigate('mobile-app')} className="hover:text-white transition-colors text-sm font-normal">Mobile App</button></li>
               </ul>
             </div>
