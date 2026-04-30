@@ -99,10 +99,11 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
         try {
             setLoading(true);
             const res = await getDues();
-            setDues(res.data);
+            setDues(Array.isArray(res.data) ? res.data : []);
         } catch (err: any) {
             console.error(err);
             alert(err?.response?.data?.message || "Failed to load entries ❌");
+            setDues([]);
         } finally {
             setLoading(false);
         }

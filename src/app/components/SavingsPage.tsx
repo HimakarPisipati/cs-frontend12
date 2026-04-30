@@ -52,9 +52,10 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
     try {
       setLoading(true);
       const res = await getSavingsGoals();
-      setGoals(res.data);
+      setGoals(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error("Failed to load savings goals", error);
+      setGoals([]);
     } finally {
       setLoading(false);
     }

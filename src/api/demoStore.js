@@ -9,31 +9,35 @@ const getDB = () => {
     // Initial sample data for the demo
     const initialData = {
       transactions: [
-        { _id: 't1', title: 'Coffee', amount: 150, type: 'expense', category: 'Food', date: new Date().toISOString() },
-        { _id: 't2', title: 'Freelance Work', amount: 5000, type: 'income', category: 'Work', date: new Date().toISOString() }
+        { _id: 't1', note: 'Coffee', amount: 150, type: 'expense', category: 'Food', date: new Date().toISOString(), paymentMethod: 'upi' },
+        { _id: 't2', note: 'Freelance Work', amount: 5000, type: 'income', category: 'Work', date: new Date().toISOString(), paymentMethod: 'bank' }
       ],
       budgets: [
-        { _id: 'b1', category: 'Food', limit: 3000, spent: 150 },
-        { _id: 'b2', category: 'Entertainment', limit: 2000, spent: 0 }
+        { _id: 'b1', category: 'Food', amount: 3000, spent: 150 },
+        { _id: 'b2', category: 'Entertainment', amount: 2000, spent: 0 }
       ],
       savings: [
-        { _id: 's1', title: 'New Laptop', targetAmount: 60000, savedAmount: 15000, category: 'Electronics' }
+        { _id: 's1', name: 'New Laptop', targetAmount: 60000, currentAmount: 15000, emoji: '💻' }
       ],
       dues: [
-        { _id: 'd1', title: 'Hostel Rent', amount: 4500, type: 'debt', dueDate: new Date().toISOString() }
+        { _id: 'd1', personName: 'Hostel Rent', amount: 4500, type: 'debt', date: new Date().toISOString(), settled: false }
       ],
       salary: [
-        { _id: 'sal1', month: 'April', basic: 50000, deductions: 5000, net: 45000 }
+        { _id: 'sal1', month: new Date().toISOString().slice(0, 7), grossSalary: 50000, pf: 5000, tax: 2000, insurance: 1000, otherDeductions: 0, netSalary: 42000 }
       ],
       reminders: [
-        { _id: 'r1', title: 'Pay Electricity Bill', date: new Date().toISOString(), category: 'Bills' }
+        { _id: 'r1', title: 'Pay Electricity Bill', amount: 1200, reminderDate: new Date().toISOString(), isPaid: false, isRecurring: false }
       ],
       reviews: []
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(initialData));
     return initialData;
   }
-  return JSON.parse(data);
+  const db = JSON.parse(data);
+  // Ensure all collections exist
+  const collections = ['transactions', 'budgets', 'savings', 'dues', 'salary', 'reminders', 'reviews'];
+  collections.forEach(c => { if (!db[c]) db[c] = []; });
+  return db;
 };
 
 const saveDB = (db) => {
@@ -44,11 +48,12 @@ const wrapResponse = (data) => Promise.resolve({ data });
 
 export const demoStore = {
   // Generic CRUD
-  get: (collection) => wrapResponse(getDB()[collection]),
+  get: (collection) => wrapResponse(getDB()[collection] || []),
   
   add: (collection, item) => {
     const db = getDB();
     const newItem = { ...item, _id: Math.random().toString(36).substr(2, 9), date: item.date || new Date().toISOString() };
+    if (!db[collection]) db[collection] = [];
     db[collection].push(newItem);
     saveDB(db);
     return wrapResponse(newItem);

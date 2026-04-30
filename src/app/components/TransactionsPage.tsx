@@ -68,10 +68,12 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
     try {
       setLoading(true);
       const res = await getTransactions();
-      setTransactions(res.data);
+      // ✅ Safety check: ensure we always have an array
+      setTransactions(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
       console.log(err);
       alert(err?.response?.data?.message || "Failed to load transactions ❌");
+      setTransactions([]); // Fallback to empty array on error
     } finally {
       setLoading(false);
     }

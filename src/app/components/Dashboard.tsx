@@ -60,7 +60,8 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
 
           // 1. Fetch Transactions
           const transRes = await getTransactions();
-          const sorted = transRes.data.sort((a: any, b: any) =>
+          const transData = Array.isArray(transRes.data) ? transRes.data : [];
+          const sorted = transData.sort((a: any, b: any) =>
             new Date(b.date).getTime() - new Date(a.date).getTime()
           );
           setTransactions(sorted);

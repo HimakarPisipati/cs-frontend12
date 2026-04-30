@@ -43,10 +43,11 @@ export function SalaryPage() {
         try {
             setLoading(true);
             const res = await getSalaries();
-            setSalaries(res.data);
+            setSalaries(Array.isArray(res.data) ? res.data : []);
         } catch (err: any) {
             console.error(err);
             alert(err?.response?.data?.message || "Failed to load salary entries ❌");
+            setSalaries([]);
         } finally {
             setLoading(false);
         }
