@@ -5,7 +5,7 @@ import { Badge } from "./ui/badge";
 import {
   LayoutDashboard, Receipt, Wallet, Target, BarChart3, Settings,
   Bell, TrendingUp, TrendingDown, HandCoins, Briefcase,
-  ChevronRight, Menu, X, Smartphone, CreditCard, Banknote, DollarSign, CalendarDays, RepeatIcon
+  ChevronRight, Menu, X, Smartphone, CreditCard, Banknote, DollarSign, CalendarDays, RepeatIcon, Sparkles
 } from "lucide-react";
 import { getCategoryIcon, getCategoryColor } from "../data/mockData";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -270,11 +270,12 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                 localStorage.removeItem("user");
                 localStorage.removeItem("isDemo");
                 sessionStorage.removeItem("demo_db");
+                sessionStorage.removeItem("tutorial_completed");
                 onNavigate('login');
               }}
-              className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"
+              className={`w-full ${localStorage.getItem("isDemo") === "true" ? 'border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-900/20' : 'dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600'}`}
             >
-              Logout
+              {localStorage.getItem("isDemo") === "true" ? "Exit Demo" : "Logout"}
             </Button>
           </div>
         </div>
@@ -335,6 +336,29 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
               </h1>
             </div>
             <div className="flex items-center gap-3">
+              {localStorage.getItem("isDemo") === "true" && (
+                <Badge variant="outline" className="hidden md:flex items-center gap-1.5 border-orange-200 bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Demo Mode
+                </Badge>
+              )}
+              {localStorage.getItem("isDemo") === "true" && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+                    localStorage.removeItem("isDemo");
+                    sessionStorage.removeItem("demo_db");
+                    sessionStorage.removeItem("tutorial_completed");
+                    onNavigate('login');
+                  }}
+                  className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/30 dark:text-red-400"
+                >
+                  Exit Demo
+                </Button>
+              )}
               <Button variant="ghost" size="sm" className="relative dark:text-gray-400 dark:hover:bg-gray-800">
                 <Bell className="w-5 h-5" />
               </Button>
