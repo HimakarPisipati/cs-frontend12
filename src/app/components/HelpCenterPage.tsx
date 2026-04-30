@@ -78,33 +78,6 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
     window.scrollTo(0, 0);
   }, []);
 
-  const categories = [
-    {
-      icon: <Wallet className="w-6 h-6 text-purple-600" />,
-      title: "Getting Started",
-      description: "Learn the basics of tracking your expenses and setting up budgets.",
-      count: 12
-    },
-    {
-      icon: <Shield className="w-6 h-6 text-blue-600" />,
-      title: "Account & Security",
-      description: "Manage your profile, change passwords, Account Deletion, and understand data security.",
-      count: 9
-    },
-    {
-      icon: <Zap className="w-6 h-6 text-orange-600" />,
-      title: "Pro Features",
-      description: "Deep dive into salary tracking, EMI management, and advanced analytics.",
-      count: 15
-    },
-    {
-      icon: <Clock className="w-6 h-6 text-green-600" />,
-      title: "Reminders & Dues",
-      description: "How to set up and manage bill reminders and payment tracking.",
-      count: 10
-    }
-  ];
-
   const faqs = [
     {
       question: "Is CampusSpend free to use?",
@@ -165,6 +138,33 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
       question: "How do I manage EMIs and Loans?",
       answer: "Go to the 'Dues & EMIs' section. You can add your loan details, interest rates, and monthly installments. The app will calculate your remaining balance and show you your debt-to-income ratio.",
       category: "Reminders & Dues"
+    }
+  ];
+
+  const categories = [
+    {
+      icon: <Wallet className="w-6 h-6 text-purple-600" />,
+      title: "Getting Started",
+      description: "Learn the basics of tracking your expenses and setting up budgets.",
+      count: faqs.filter(f => f.category === "Getting Started").length
+    },
+    {
+      icon: <Shield className="w-6 h-6 text-blue-600" />,
+      title: "Account & Security",
+      description: "Manage your profile, change passwords, Account Deletion, and understand data security.",
+      count: faqs.filter(f => f.category === "Account & Security").length
+    },
+    {
+      icon: <Zap className="w-6 h-6 text-orange-600" />,
+      title: "Pro Features",
+      description: "Deep dive into salary tracking, EMI management, and advanced analytics.",
+      count: faqs.filter(f => f.category === "Pro Features").length
+    },
+    {
+      icon: <Clock className="w-6 h-6 text-green-600" />,
+      title: "Reminders & Dues",
+      description: "How to set up and manage bill reminders and payment tracking.",
+      count: faqs.filter(f => f.category === "Reminders & Dues").length
     }
   ];
 
