@@ -671,7 +671,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
               <h3 className="font-semibold text-white mb-4">Support</h3>
               <ul className="space-y-2 text-sm">
                 <li><button onClick={() => onNavigate('help-center')} className="hover:text-white transition-colors text-sm font-normal">Help Center</button></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
+                <li><button onClick={() => onNavigate('contact-us')} className="hover:text-white transition-colors text-sm font-normal">Contact Us</button></li>
                 <li><button onClick={() => onNavigate('privacy-policy')} className="hover:text-white transition-colors text-sm font-normal">Privacy Policy</button></li>
               </ul>
             </div>

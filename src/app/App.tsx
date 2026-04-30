@@ -14,6 +14,7 @@ import { SalaryPage } from "./components/SalaryPage";
 import { RemindersPage } from "./components/RemindersPage";
 import { PrivacyPolicyPage } from "./components/PrivacyPolicyPage";
 import { HelpCenterPage } from "./components/HelpCenterPage";
+import { ContactUsPage } from "./components/ContactUsPage";
 
 export default function App() {
   const token = localStorage.getItem("token");
@@ -114,6 +115,10 @@ export default function App() {
 
   if (currentPage === "help-center") {
     return <HelpCenterPage onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "contact-us") {
+    return <ContactUsPage onNavigate={handleNavigate} />;
   }
 
   // Protected pages layout

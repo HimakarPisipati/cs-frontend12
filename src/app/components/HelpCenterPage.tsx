@@ -360,6 +360,10 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
                     <Book className="w-4 h-4" />
                     Privacy Policy
                   </button>
+                  <button onClick={() => onNavigate('contact-us')} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                    <Mail className="w-4 h-4" />
+                    Contact Us
+                  </button>
                   <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
                     <User className="w-4 h-4" />
                     Terms of Service
@@ -385,6 +389,7 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
             <div className="flex justify-center gap-8 text-sm">
               <button onClick={() => onNavigate('landing')} className="hover:text-white transition-colors text-sm font-normal">Home</button>
               <button onClick={() => onNavigate('privacy-policy')} className="hover:text-white transition-colors text-sm font-normal">Privacy</button>
+              <button onClick={() => onNavigate('contact-us')} className="hover:text-white transition-colors text-sm font-normal">Contact Us</button>
               <button onClick={() => onNavigate('signup')} className="hover:text-white transition-colors text-sm font-normal">Get Started</button>
             </div>
             <div className="mt-8 pt-8 border-t border-gray-800">
