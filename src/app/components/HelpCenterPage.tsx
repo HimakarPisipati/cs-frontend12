@@ -87,8 +87,8 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
     {
       icon: <Shield className="w-6 h-6 text-blue-600" />,
       title: "Account & Security",
-      description: "Manage your profile, change passwords, and understand data security.",
-      count: 8
+      description: "Manage your profile, change passwords, delete account, and understand data security.",
+      count: 9
     },
     {
       icon: <Zap className="w-6 h-6 text-orange-600" />,
@@ -124,6 +124,10 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
     {
       question: "Can I use CampusSpend on my mobile phone?",
       answer: "Yes! CampusSpend is a Progressive Web App (PWA), meaning you can use it on your phone's browser, and it will behave just like a native app. You can even 'Add to Home Screen' for easier access."
+    },
+    {
+      question: "How do I delete my account?",
+      answer: "To delete your account, go to Profile > Settings > Security and select 'Delete Account'. Please note that this action is permanent and will remove all your transaction history and budget data. You can also contact support if you need help."
     }
   ];
 
