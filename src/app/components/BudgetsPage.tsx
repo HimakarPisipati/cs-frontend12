@@ -35,7 +35,7 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form State
-  const [category, setCategory] = useState("Food");
+  const [category, setCategory] = useState("General");
   const [limit, setLimit] = useState("");
   const [alertThreshold, setAlertThreshold] = useState("80");
 
@@ -63,8 +63,23 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
   }, []);
 
   // ✅ CALCULATE SPENDING MANUALLY (Fixes Ghost Data)
+  // For "General" budget: also include expenses from categories that don't have their own budget
   const getCategorySpending = (catName: string) => {
     if (!transactions || transactions.length === 0) return 0;
+
+    if (catName === "General") {
+      // Get all budget category names (excluding "General" itself)
+      const budgetedCategories = budgets
+        .filter(b => b.category !== "General")
+        .map(b => b.category);
+
+      // Sum expenses that either:
+      // 1. Are explicitly categorized as "General"
+      // 2. Belong to categories that don't have their own dedicated budget
+      return transactions
+        .filter(t => t.type === 'expense' && (t.category === "General" || !budgetedCategories.includes(t.category)))
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    }
 
     return transactions
       .filter(t => t.type === 'expense' && t.category === catName)
@@ -87,7 +102,7 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
       }
       setShowAddModal(false);
       setEditingId(null);
-      setCategory("Food");
+      setCategory("General");
       setLimit("");
       loadData();
     } catch (error: any) {
@@ -130,7 +145,7 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
           <Button
             onClick={() => {
               setEditingId(null);
-              setCategory("Food");
+              setCategory("General");
               setLimit("");
               setShowAddModal(true);
             }}
@@ -183,8 +198,13 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
                   <div className={`w-12 h-12 rounded-xl ${accentBg} flex items-center justify-center text-2xl`}>
                     <Wallet className={`w-6 h-6 ${accentText}`} />
                   </div>
-                  <div>
+                <div>
                     <h3 className="font-bold text-lg">{budget.category}</h3>
+                    {budget.category === "General" && (
+                      <p className="text-xs text-amber-500 dark:text-amber-400 mb-0.5">
+                        ⚡ Catches expenses without a dedicated budget
+                      </p>
+                    )}
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       ₹{spent.toLocaleString()} spent of ₹{limit.toLocaleString()}
                     </p>
@@ -226,7 +246,7 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                 >
-                  {["Food", "Travel", "Entertainment", "Shopping", "Bills", "Health", "Education", "Other"].map(c => (
+                  {["General", "Food", "Travel", "Entertainment", "Shopping", "Bills", "Health", "Education", "Transport", "Other"].map(c => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>

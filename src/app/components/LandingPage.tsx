@@ -239,6 +239,7 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
             <div className="hidden md:flex flex-1 items-center justify-center gap-8 pl-20">
               <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Features</a>
               <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Testimonials</a>
+              <button onClick={() => onNavigate('privacy-policy')} className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium">Privacy Policy</button>
             </div>
 
 
@@ -669,9 +670,9 @@ export function LandingPage({ onNavigate }: LandingPageProps) {
             <div>
               <h3 className="font-semibold text-white mb-4">Support</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><button onClick={() => onNavigate('help-center')} className="hover:text-white transition-colors">Help Center</button></li>
                 <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><button onClick={() => onNavigate('privacy-policy')} className="hover:text-white transition-colors">Privacy Policy</button></li>
               </ul>
             </div>
           </div>

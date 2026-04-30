@@ -397,13 +397,21 @@ export function SignupPage({ onNavigate }: SignupPageProps) {
               <input type="checkbox" id="terms" className="mt-1" required />
               <label htmlFor="terms" className="text-sm text-gray-600 dark:text-gray-400">
                 I agree to the{" "}
-                <a href="#" className={`${accentText} ${accentHover}`}>
+                <button 
+                  type="button"
+                  onClick={() => onNavigate("privacy-policy")}
+                  className={`${accentText} ${accentHover} hover:underline transition-all`}
+                >
                   Terms of Service
-                </a>{" "}
+                </button>{" "}
                 and{" "}
-                <a href="#" className={`${accentText} ${accentHover}`}>
+                <button 
+                  type="button"
+                  onClick={() => onNavigate("privacy-policy")}
+                  className={`${accentText} ${accentHover} hover:underline transition-all`}
+                >
                   Privacy Policy
-                </a>
+                </button>
               </label>
             </div>
 

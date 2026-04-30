@@ -12,6 +12,8 @@ import { ForgotPasswordPage } from "./components/ForgotPasswordPage";
 import { DuesPage } from "./components/DuesPage";
 import { SalaryPage } from "./components/SalaryPage";
 import { RemindersPage } from "./components/RemindersPage";
+import { PrivacyPolicyPage } from "./components/PrivacyPolicyPage";
+import { HelpCenterPage } from "./components/HelpCenterPage";
 
 export default function App() {
   const token = localStorage.getItem("token");
@@ -104,6 +106,14 @@ export default function App() {
 
   if (currentPage === "forgot-password") {
     return <ForgotPasswordPage onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "privacy-policy") {
+    return <PrivacyPolicyPage onNavigate={handleNavigate} />;
+  }
+
+  if (currentPage === "help-center") {
+    return <HelpCenterPage onNavigate={handleNavigate} />;
   }
 
   // Protected pages layout
