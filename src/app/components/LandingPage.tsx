@@ -20,7 +20,9 @@ import {
   BarChart3,
   Edit2,
   Trash2,
-  MoreVertical
+  MoreVertical,
+  Apple,
+  Play
 } from "lucide-react";
 
 
