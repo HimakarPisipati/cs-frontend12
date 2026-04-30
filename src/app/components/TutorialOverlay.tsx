@@ -112,16 +112,23 @@ export function TutorialOverlay({ onComplete, onNavigate, userMode }: TutorialOv
     const scrollElement = () => {
       const element = document.getElementById(step.targetId);
       if (element) {
-        // 1. Standard scroll into view
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // 1. Standard scroll into view with options
+        element.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center',
+          inline: 'nearest'
+        });
         
         // 2. Fallback: Manual scroll calculation for absolute precision
         const rect = element.getBoundingClientRect();
-        const absoluteElementTop = rect.top + window.pageYOffset;
+        const absoluteElementTop = rect.top + window.scrollY;
         const middle = absoluteElementTop - (window.innerHeight / 2) + (rect.height / 2);
         
-        // Only scroll if not already in view
-        if (rect.top < 0 || rect.bottom > window.innerHeight) {
+        // If it's not significantly centered, force it
+        const currentViewportTop = window.scrollY;
+        const currentViewportBottom = currentViewportTop + window.innerHeight;
+        
+        if (Math.abs(currentViewportTop + (window.innerHeight / 2) - (absoluteElementTop + rect.height / 2)) > 100) {
           window.scrollTo({
             top: middle,
             behavior: 'smooth'
@@ -135,9 +142,8 @@ export function TutorialOverlay({ onComplete, onNavigate, userMode }: TutorialOv
     window.addEventListener('scroll', updateCoords, true);
     window.addEventListener('resize', updateCoords);
     
-    // Multiple checks to account for page transitions and rendering
-    // Increased duration and frequency to ensure catch-up after page loads
-    const timers = [50, 100, 300, 500, 800, 1200, 2000].map(ms => setTimeout(() => {
+    // Frequent checks to ensure alignment during page transitions
+    const timers = [50, 150, 300, 500, 800, 1200, 1800, 2500].map(ms => setTimeout(() => {
       scrollElement();
       updateCoords();
     }, ms));
