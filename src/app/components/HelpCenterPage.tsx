@@ -383,9 +383,9 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
             </div>
             <p className="text-sm mb-6 max-w-md mx-auto">Making money management simple for students and professionals everywhere.</p>
             <div className="flex justify-center gap-8 text-sm">
-              <button onClick={() => onNavigate('landing')} className="hover:text-white transition-colors">Home</button>
-              <button onClick={() => onNavigate('privacy-policy')} className="hover:text-white transition-colors">Privacy</button>
-              <button onClick={() => onNavigate('signup')} className="hover:text-white transition-colors">Get Started</button>
+              <button onClick={() => onNavigate('landing')} className="hover:text-white transition-colors text-sm font-normal">Home</button>
+              <button onClick={() => onNavigate('privacy-policy')} className="hover:text-white transition-colors text-sm font-normal">Privacy</button>
+              <button onClick={() => onNavigate('signup')} className="hover:text-white transition-colors text-sm font-normal">Get Started</button>
             </div>
             <div className="mt-8 pt-8 border-t border-gray-800">
               <p>&copy; 2026 CampusSpend. Made By Himakar. All Rights Reserved.</p>
