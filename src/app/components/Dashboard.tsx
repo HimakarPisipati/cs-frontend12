@@ -571,23 +571,23 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
             </div>
 
             {/* ✅ Upcoming Reminders Widget */}
-            {remindersData.length > 0 && (
-              <Card id="tutorial-reminders" className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <CalendarDays className={`w-5 h-5 ${isEmployee ? 'text-blue-500' : 'text-purple-500'}`} />
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Upcoming Reminders</h3>
-                  </div>
-                  <Button
-                    variant="ghost" size="sm"
-                    className={`${isEmployee ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`}
-                    onClick={() => onNavigate('reminders')}
-                  >
-                    View All <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
+            <Card id="tutorial-reminders" className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <CalendarDays className={`w-5 h-5 ${isEmployee ? 'text-blue-500' : 'text-purple-500'}`} />
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Upcoming Reminders</h3>
                 </div>
-                <div className="space-y-3">
-                  {remindersData.map((r: any) => {
+                <Button
+                  variant="ghost" size="sm"
+                  className={`${isEmployee ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`}
+                  onClick={() => onNavigate('reminders')}
+                >
+                  View All <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {remindersData.length > 0 ? (
+                  remindersData.map((r: any) => {
                     const isOverdue = new Date(r.reminderDate) < new Date();
                     return (
                       <div key={r._id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600">
@@ -611,10 +611,15 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                         </p>
                       </div>
                     );
-                  })}
-                </div>
-              </Card>
-            )}
+                  })
+                ) : (
+                  <div className="text-center py-6 text-gray-500 dark:text-gray-400 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-xl">
+                    <p className="text-sm">No upcoming reminders</p>
+                    <p className="text-xs mt-1">Set reminders to track your bills</p>
+                  </div>
+                )}
+              </div>
+            </Card>
 
             {/* ✅ RESTORED: Recent Transactions Table */}
             <Card id="tutorial-recent" className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg">
