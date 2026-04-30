@@ -69,23 +69,38 @@ export function TutorialOverlay({ onComplete, userMode }: TutorialOverlayProps) 
       if (element) {
         const rect = element.getBoundingClientRect();
         setCoords({
-          top: rect.top + window.scrollY,
-          left: rect.left + window.scrollX,
+          top: rect.top,
+          left: rect.left,
           width: rect.width,
           height: rect.height
         });
-        
-        // Smooth scroll to element
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else {
-        // Fallback to center if element not found
         setCoords({ top: window.innerHeight / 2, left: window.innerWidth / 2, width: 0, height: 0 });
       }
     };
 
+    // Auto-scroll when step changes
+    const step = steps[currentStep];
+    const element = document.getElementById(step.targetId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Update positions on scroll/resize
     updateCoords();
+    window.addEventListener('scroll', updateCoords, true);
     window.addEventListener('resize', updateCoords);
-    return () => window.removeEventListener('resize', updateCoords);
+    
+    // Initial delay to wait for any page transitions or smooth scrolls
+    const timer = setTimeout(updateCoords, 100);
+    const timer2 = setTimeout(updateCoords, 500); // Second check after smooth scroll might have moved more
+
+    return () => {
+      window.removeEventListener('scroll', updateCoords, true);
+      window.removeEventListener('resize', updateCoords);
+      clearTimeout(timer);
+      clearTimeout(timer2);
+    };
   }, [currentStep]);
 
   const handleNext = () => {
@@ -122,7 +137,7 @@ export function TutorialOverlay({ onComplete, userMode }: TutorialOverlayProps) 
 
       {/* Spotlight highlight */}
       <div 
-        className={`absolute border-2 border-dashed border-white/50 rounded-xl transition-all duration-500`}
+        className={`absolute border-2 border-dashed border-white/50 rounded-xl transition-all duration-300`}
         style={{
           top: coords.top - 4,
           left: coords.left - 4,
@@ -133,10 +148,10 @@ export function TutorialOverlay({ onComplete, userMode }: TutorialOverlayProps) 
 
       {/* Tutorial Card */}
       <div 
-        className="absolute pointer-events-auto transition-all duration-500 w-[320px] sm:w-[400px]"
+        className="absolute pointer-events-auto transition-all duration-300 w-[320px] sm:w-[400px]"
         style={{
           top: step.position === 'bottom' ? coords.top + coords.height + 20 : 
-               step.position === 'top' ? coords.top - 200 : 
+               step.position === 'top' ? coords.top - 210 : 
                coords.top + (coords.height / 2) - 100,
           left: step.position === 'right' ? coords.left + coords.width + 20 :
                 Math.max(20, Math.min(window.innerWidth - 420, coords.left + (coords.width / 2) - 200)),
