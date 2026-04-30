@@ -62,6 +62,7 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
       localStorage.getItem("theme") === "dark";
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     if (isDark) {
@@ -107,34 +108,72 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
   const faqs = [
     {
       question: "Is CampusSpend free to use?",
-      answer: "Yes, CampusSpend is completely free for students and professionals. All our core features including budget tracking, salary management, and PDF reports are available without any cost."
+      answer: "Yes, CampusSpend is completely free for students and professionals. All our core features including budget tracking, salary management, and PDF reports are available without any cost.",
+      category: "Getting Started"
     },
     {
       question: "How do I switch between Student and Employee mode?",
-      answer: "You can switch modes from your Profile or Settings page. Go to Settings > Preferences and select your preferred mode. This will update your dashboard to show tools relevant to your profile."
+      answer: "You can switch modes from your Profile or Settings page. Go to Settings > Preferences and select your preferred mode. This will update your dashboard to show tools relevant to your profile.",
+      category: "Getting Started"
     },
     {
       question: "Is my financial data secure?",
-      answer: "Absolutely. We use AES-256 encryption to store your sensitive financial information and industry-standard security protocols for all data transmissions. We never share your personal data with third parties."
+      answer: "Absolutely. We use AES-256 encryption to store your sensitive financial information and industry-standard security protocols for all data transmissions. We never share your personal data with third parties.",
+      category: "Account & Security"
     },
     {
       question: "How can I export my expense reports?",
-      answer: "You can export reports from the Transactions or Analytics pages. Look for the 'Export PDF' button. You can filter by date range or category before exporting."
+      answer: "You can export reports from the Transactions or Analytics pages. Look for the 'Export PDF' button. You can filter by date range or category before exporting.",
+      category: "Pro Features"
     },
     {
       question: "Can I use CampusSpend on my mobile phone?",
-      answer: "Yes! CampusSpend is a Progressive Web App (PWA), meaning you can use it on your phone's browser, and it will behave just like a native app. You can even 'Add to Home Screen' for easier access."
+      answer: "Yes! CampusSpend is a Progressive Web App (PWA), meaning you can use it on your phone's browser, and it will behave just like a native app. You can even 'Add to Home Screen' for easier access.",
+      category: "Getting Started"
     },
     {
       question: "How do I perform an Account Deletion?",
-      answer: "To request an Account Deletion, go to Profile > Settings > Security and select 'Delete Account'. Please note that this action is permanent and will remove all your transaction history and budget data. You can also contact support if you need help with deleting your account."
+      answer: "To request an Account Deletion, go to Profile > Settings > Security and select 'Delete Account'. Please note that this action is permanent and will remove all your transaction history and budget data. You can also contact support if you need help with deleting your account.",
+      category: "Account & Security"
+    },
+    {
+      question: "How do I set up a budget?",
+      answer: "Navigate to the 'Budgets' page from your dashboard. Click on 'Create Budget', select a category (like Food, Rent, or Entertainment), and set your monthly limit. We'll track your expenses against this limit automatically.",
+      category: "Getting Started"
+    },
+    {
+      question: "What is the Salary Tracker?",
+      answer: "The Salary Tracker is a Pro feature that allows you to log your monthly income, track tax deductions, and see your net take-home pay over time. It helps you understand your true spending capacity.",
+      category: "Pro Features"
+    },
+    {
+      question: "How do bill reminders work?",
+      answer: "In the 'Reminders' section, you can add upcoming bills like electricity, internet, or rent. Set the due date and amount. We'll send you a notification and highlight these in your dashboard so you never miss a payment.",
+      category: "Reminders & Dues"
+    },
+    {
+      question: "Can I track shared expenses with roommates?",
+      answer: "While we don't have a direct 'Splitwise' integration yet, you can tag expenses as 'Shared' and use the notes section to track who owes what. We are working on a dedicated Group Spending feature!",
+      category: "Pro Features"
+    },
+    {
+      question: "How do I reset my password?",
+      answer: "If you're logged in, go to Settings > Security > Change Password. If you've forgotten your password, click 'Forgot Password' on the login screen, and we'll email you a reset link.",
+      category: "Account & Security"
+    },
+    {
+      question: "How do I manage EMIs and Loans?",
+      answer: "Go to the 'Dues & EMIs' section. You can add your loan details, interest rates, and monthly installments. The app will calculate your remaining balance and show you your debt-to-income ratio.",
+      category: "Reminders & Dues"
     }
   ];
 
-  const filteredFaqs = faqs.filter(faq => 
-    faq.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    faq.answer.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredFaqs = faqs.filter(faq => {
+    const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory ? faq.category === selectedCategory : true;
+    return matchesSearch && matchesCategory;
+  });
 
   const filteredCategories = categories.filter(cat =>
     cat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -221,7 +260,18 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
           {filteredCategories.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {filteredCategories.map((cat, idx) => (
-                <Card key={idx} className="p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm group cursor-pointer">
+                <Card 
+                  key={idx} 
+                  onClick={() => {
+                    setSelectedCategory(cat.title);
+                    setSearchQuery("");
+                    const faqSection = document.getElementById('faq-section');
+                    faqSection?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className={`p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm group cursor-pointer ${
+                    selectedCategory === cat.title ? "border-purple-500 shadow-purple-500/20" : "border-transparent"
+                  }`}
+                >
                   <div className="w-12 h-12 rounded-2xl bg-gray-50 dark:bg-gray-700 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                     {cat.icon}
                   </div>
@@ -246,11 +296,23 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-3 gap-12">
             {/* FAQs */}
-            <div className="lg:col-span-2">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
-                <HelpCircle className="w-7 h-7 text-purple-600" />
-                Frequently Asked Questions
-              </h2>
+            <div className="lg:col-span-2" id="faq-section">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                  <HelpCircle className="w-7 h-7 text-purple-600" />
+                  {selectedCategory ? `${selectedCategory} Articles` : "Frequently Asked Questions"}
+                </h2>
+                {selectedCategory && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedCategory(null)}
+                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 font-semibold"
+                  >
+                    View All Articles
+                  </Button>
+                )}
+              </div>
               <div className="space-y-4">
                 {filteredFaqs.length > 0 ? (
                   filteredFaqs.map((faq, idx) => (
