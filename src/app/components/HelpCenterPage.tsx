@@ -22,6 +22,7 @@ import { Input } from "./ui/input";
 
 interface HelpCenterPageProps {
   onNavigate: (page: string) => void;
+  userMode?: string;
 }
 
 interface FAQProps {
@@ -56,7 +57,8 @@ function FAQItem({ question, answer }: FAQProps) {
   );
 }
 
-export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
+export function HelpCenterPage({ onNavigate, userMode = "student" }: HelpCenterPageProps) {
+  const isEmp = userMode === "employee";
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark") ||
       localStorage.getItem("theme") === "dark";
@@ -181,7 +183,7 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 transition-colors duration-300">
+    <div className={`min-h-screen bg-gradient-to-br ${isEmp ? 'from-blue-50 via-cyan-50 to-green-50' : 'from-purple-50 via-blue-50 to-green-50'} dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 transition-colors duration-300`}>
       {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -198,11 +200,11 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
               </Button>
               <div className="h-6 w-px bg-gray-300 dark:bg-gray-700" />
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                <div className={`w-8 h-8 bg-gradient-to-br ${isEmp ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-lg flex items-center justify-center`}>
                   <Wallet className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  CampusSpend
+                <span className={`text-lg font-bold bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} bg-clip-text text-transparent`}>
+                  {isEmp ? 'CampusSpend Pro' : 'CampusSpend'}
                 </span>
               </div>
             </div>
@@ -239,7 +241,7 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
               <button 
                 key={tag} 
                 onClick={() => setSearchQuery(tag)}
-                className="text-sm font-medium text-purple-600 dark:text-purple-400 hover:underline"
+                className={`text-sm font-medium ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'} hover:underline`}
               >
                 {tag}
               </button>
@@ -249,8 +251,8 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
 
         {/* Decorative elements */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-24 -left-24 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+          <div className={`absolute -top-24 -left-24 w-96 h-96 ${isEmp ? 'bg-blue-500/10' : 'bg-purple-500/10'} rounded-full blur-3xl`}></div>
+          <div className={`absolute -bottom-24 -right-24 w-96 h-96 ${isEmp ? 'bg-cyan-500/10' : 'bg-blue-500/10'} rounded-full blur-3xl`}></div>
         </div>
       </section>
 
@@ -277,7 +279,7 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{cat.title}</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{cat.description}</p>
-                  <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">{cat.count} articles</span>
+                  <span className={`text-xs font-semibold ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`}>{cat.count} articles</span>
                 </Card>
               ))}
             </div>
@@ -299,7 +301,7 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
             <div className="lg:col-span-2" id="faq-section">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                  <HelpCircle className="w-7 h-7 text-purple-600" />
+                  <HelpCircle className={`w-7 h-7 ${isEmp ? 'text-blue-600' : 'text-purple-600'}`} />
                   {selectedCategory ? `${selectedCategory} Articles` : "Frequently Asked Questions"}
                 </h2>
                 {selectedCategory && (
@@ -307,7 +309,7 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
                     variant="ghost" 
                     size="sm" 
                     onClick={() => setSelectedCategory(null)}
-                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 font-semibold"
+                    className={`${isEmp ? 'text-blue-600 dark:text-blue-400 hover:text-blue-700' : 'text-purple-600 dark:text-purple-400 hover:text-purple-700'} font-semibold`}
                   >
                     View All Articles
                   </Button>
@@ -326,7 +328,7 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
                     </p>
                     <button 
                       onClick={() => setSearchQuery("")}
-                      className="mt-4 text-purple-600 dark:text-purple-400 font-semibold hover:underline"
+                      className={`mt-4 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'} font-semibold hover:underline`}
                     >
                       Clear search
                     </button>
@@ -342,11 +344,11 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
                 Contact Support
               </h2>
               
-              <Card className="p-6 border-0 shadow-lg bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+              <Card className={`p-6 border-0 shadow-lg bg-gradient-to-br ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} text-white`}>
                 <h3 className="text-xl font-bold mb-4">Still need help?</h3>
-                <p className="text-purple-50 mb-6">Our support team is always here to help you with any issues or questions.</p>
+                <p className={`${isEmp ? 'text-blue-50' : 'text-purple-50'} mb-6`}>Our support team is always here to help you with any issues or questions.</p>
                 <a href="mailto:campusspend@gmail.com" className="block">
-                  <Button className="w-full bg-white text-purple-600 hover:bg-gray-100 font-bold h-12">
+                  <Button className={`w-full bg-white ${isEmp ? 'text-blue-600' : 'text-purple-600'} hover:bg-gray-100 font-bold h-12`}>
                     <Mail className="w-4 h-4 mr-2" />
                     Email Support
                   </Button>
@@ -380,10 +382,10 @@ export function HelpCenterPage({ onNavigate }: HelpCenterPageProps) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex justify-center items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+              <div className={`w-8 h-8 bg-gradient-to-br ${isEmp ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-lg flex items-center justify-center`}>
                 <Wallet className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-white">CampusSpend</span>
+              <span className="font-bold text-white">{isEmp ? 'CampusSpend Pro' : 'CampusSpend'}</span>
             </div>
             <p className="text-sm mb-6 max-w-md mx-auto">Making money management simple for students and professionals everywhere.</p>
             <div className="flex justify-center gap-8 text-sm">

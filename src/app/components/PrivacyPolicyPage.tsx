@@ -18,6 +18,7 @@ import {
 
 interface PrivacyPolicyPageProps {
   onNavigate: (page: string) => void;
+  userMode?: string;
 }
 
 interface SectionProps {
@@ -59,7 +60,8 @@ function PolicySection({ icon, title, children, defaultOpen = false }: SectionPr
   );
 }
 
-export function PrivacyPolicyPage({ onNavigate }: PrivacyPolicyPageProps) {
+export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyPolicyPageProps) {
+  const isEmp = userMode === "employee";
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark") ||
       localStorage.getItem("theme") === "dark";
@@ -80,7 +82,7 @@ export function PrivacyPolicyPage({ onNavigate }: PrivacyPolicyPageProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 transition-colors duration-300">
+    <div className={`min-h-screen bg-gradient-to-br ${isEmp ? 'from-blue-50 via-cyan-50 to-green-50' : 'from-purple-50 via-blue-50 to-green-50'} dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 transition-colors duration-300`}>
       {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -97,11 +99,11 @@ export function PrivacyPolicyPage({ onNavigate }: PrivacyPolicyPageProps) {
               </Button>
               <div className="h-6 w-px bg-gray-300 dark:bg-gray-700" />
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                <div className={`w-8 h-8 bg-gradient-to-br ${isEmp ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-lg flex items-center justify-center`}>
                   <Wallet className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  CampusSpend
+                <span className={`text-lg font-bold bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} bg-clip-text text-transparent`}>
+                  {isEmp ? 'CampusSpend Pro' : 'CampusSpend'}
                 </span>
               </div>
             </div>
@@ -119,9 +121,9 @@ export function PrivacyPolicyPage({ onNavigate }: PrivacyPolicyPageProps) {
       {/* Hero Header */}
       <section className="relative overflow-hidden py-16 lg:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/40 rounded-full mb-6">
-            <Shield className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-            <span className="text-sm text-purple-600 dark:text-purple-400 font-medium">Your Privacy Matters</span>
+          <div className={`inline-flex items-center gap-2 px-4 py-2 ${isEmp ? 'bg-blue-100 dark:bg-blue-900/40' : 'bg-purple-100 dark:bg-purple-900/40'} rounded-full mb-6`}>
+            <Shield className={`w-4 h-4 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />
+            <span className={`text-sm ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'} font-medium`}>Your Privacy Matters</span>
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
             Privacy Policy
@@ -136,8 +138,8 @@ export function PrivacyPolicyPage({ onNavigate }: PrivacyPolicyPageProps) {
         </div>
 
         {/* Decorative gradients */}
-        <div className="absolute top-0 left-1/4 w-72 h-72 bg-purple-300 dark:bg-purple-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-15 animate-pulse" />
-        <div className="absolute top-10 right-1/4 w-72 h-72 bg-blue-300 dark:bg-blue-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-15 animate-pulse delay-1000" />
+        <div className={`absolute top-0 left-1/4 w-72 h-72 ${isEmp ? 'bg-blue-300 dark:bg-blue-800' : 'bg-purple-300 dark:bg-purple-800'} rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-15 animate-pulse`} />
+        <div className={`absolute top-10 right-1/4 w-72 h-72 ${isEmp ? 'bg-cyan-300 dark:bg-cyan-800' : 'bg-blue-300 dark:bg-blue-800'} rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-15 animate-pulse delay-1000`} />
       </section>
 
       {/* Policy Content */}
@@ -342,7 +344,7 @@ export function PrivacyPolicyPage({ onNavigate }: PrivacyPolicyPageProps) {
             <Button
               size="lg"
               onClick={() => onNavigate("landing")}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-lg px-8 h-14"
+              className={`bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700' : 'from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'} text-lg px-8 h-14`}
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
               Back to Home

@@ -110,15 +110,15 @@ export default function App() {
   }
 
   if (currentPage === "privacy-policy") {
-    return <PrivacyPolicyPage onNavigate={handleNavigate} />;
+    return <PrivacyPolicyPage onNavigate={handleNavigate} userMode={userMode} />;
   }
 
   if (currentPage === "help-center") {
-    return <HelpCenterPage onNavigate={handleNavigate} />;
+    return <HelpCenterPage onNavigate={handleNavigate} userMode={userMode} />;
   }
 
   if (currentPage === "contact-us") {
-    return <ContactUsPage onNavigate={handleNavigate} />;
+    return <ContactUsPage onNavigate={handleNavigate} userMode={userMode} />;
   }
 
   // Protected pages layout
