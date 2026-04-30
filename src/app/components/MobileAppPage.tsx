@@ -11,7 +11,9 @@ import {
   ArrowLeft,
   CheckCircle2,
   Globe,
-  Wallet
+  Wallet,
+  PieChart,
+  Target
 } from "lucide-react";
 
 interface MobileAppPageProps {
@@ -34,23 +36,23 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
   const features = [
     {
       icon: <Bell className={`w-6 h-6 ${theme.icon}`} />,
-      title: "Instant Notifications",
-      description: "Get real-time alerts for every transaction and budget limit warning."
+      title: "Smart Reminders",
+      description: "Never miss a bill payment with our intelligent reminder system."
     },
     {
-      icon: <Camera className={`w-6 h-6 ${theme.icon}`} />,
-      title: "Receipt Scanner",
-      description: "Simply snap a photo of your bills and let AI categorize them automatically."
+      icon: <PieChart className={`w-6 h-6 ${theme.icon}`} />,
+      title: "Visual Analytics",
+      description: "Understand your spending habits with detailed charts and categories."
     },
     {
-      icon: <ShieldCheck className={`w-6 h-6 ${theme.icon}`} />,
-      title: "Biometric Security",
-      description: "Lock your financial data with FaceID or Fingerprint authentication."
+      icon: <Target className={`w-6 h-6 ${theme.icon}`} />,
+      title: "Goal Tracking",
+      description: "Set and monitor savings goals for your next big purchase or trip."
     },
     {
       icon: <Zap className={`w-6 h-6 ${theme.icon}`} />,
-      title: "Offline Mode",
-      description: "Add transactions even without internet; we'll sync when you're back online."
+      title: "Real-time Sync",
+      description: "All your data is instantly synced between your mobile app and web dashboard."
     }
   ];
 
@@ -156,7 +158,7 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
                   </div>
                 </div>
                 <ul className="space-y-4">
-                  {['Swift UI native performance', 'Interactive Widgets', 'Apple Pay integration', 'Siri Shortcuts support'].map((item, i) => (
+                  {['Full Transaction History', 'Advanced Expense Analytics', 'Dynamic Budget Planning', 'Savings Goals Tracking'].map((item, i) => (
                     <li key={i} className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
                       <span>{item}</span>
@@ -174,7 +176,7 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
                   </div>
                 </div>
                 <ul className="space-y-4">
-                  {['Material You dynamic theme', 'Customizable Widgets', 'Google Pay support', 'Multi-window multitasking'].map((item, i) => (
+                  {['Monthly Salary Tracker', 'EMI & Debt Management', 'Smart Bill Reminders', 'Real-time Data Sync'].map((item, i) => (
                     <li key={i} className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
                       <span>{item}</span>
@@ -190,9 +192,9 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
         <section className="py-20 max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Mobile-Exclusive Features
+              Powerful App Features
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">Everything you love about CampusSpend, optimized for your pocket.</p>
+            <p className="text-gray-600 dark:text-gray-400">The full power of CampusSpend, now optimized for your mobile device.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
