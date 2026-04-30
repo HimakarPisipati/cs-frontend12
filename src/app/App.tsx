@@ -54,28 +54,20 @@ export default function App() {
   ];
 
   const handleDemoLogin = async () => {
-    try {
-      const demoEmail = "demo@campispend.com";
-      const demoPassword = "demo1234";
-      const res = await login({ email: demoEmail, password: demoPassword, user_mode: userMode });
+    // 🔥 Demo Mode: Local session only, no DB calls
+    localStorage.setItem("token", "demo-token");
+    localStorage.setItem("isDemo", "true");
+    localStorage.setItem("userMode", userMode);
+    localStorage.setItem("user", JSON.stringify({
+      _id: "demo-user-id",
+      name: "Demo User",
+      email: "demo@campispend.com",
+      userMode: userMode,
+    }));
 
-      // 🔥 Save token and user
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userMode", res.data.userMode || "student");
-      localStorage.setItem("user", JSON.stringify({
-        _id: res.data._id,
-        name: res.data.name,
-        email: res.data.email,
-        userMode: res.data.userMode || "student",
-      }));
-
-      setUserMode(res.data.userMode || "student");
-      setCurrentPage("dashboard");
-      window.scrollTo(0, 0);
-    } catch (err: any) {
-      console.error("Demo login failed:", err);
-      setCurrentPage("login"); // Fallback
-    }
+    setUserMode(userMode);
+    setCurrentPage("dashboard");
+    window.scrollTo(0, 0);
   };
 
   const handleNavigate = (page: string) => {

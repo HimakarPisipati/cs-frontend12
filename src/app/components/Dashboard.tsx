@@ -257,6 +257,8 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
               onClick={() => {
                 localStorage.removeItem("token");
                 localStorage.removeItem("user");
+                localStorage.removeItem("isDemo");
+                sessionStorage.removeItem("demo_db");
                 onNavigate('login');
               }}
               className="w-full dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600"

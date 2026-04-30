@@ -1,4 +1,7 @@
 import API from "./api";
+import { demoStore } from "./demoStore";
+
+const isDemo = () => localStorage.getItem("isDemo") === "true";
 
 // ==============================
 // 🔐 AUTHENTICATION
@@ -26,18 +29,18 @@ export const loginUser = login;
 // ==============================
 // 💸 TRANSACTIONS
 // ==============================
-export const getTransactions = () => API.get("/transactions");
-export const addTransaction = (data) => API.post("/transactions", data);
-export const deleteTransaction = (id) => API.delete(`/transactions/${id}`);
-export const updateTransaction = (id, data) => API.put(`/transactions/${id}`, data);
+export const getTransactions = () => isDemo() ? demoStore.get('transactions') : API.get("/transactions");
+export const addTransaction = (data) => isDemo() ? demoStore.add('transactions', data) : API.post("/transactions", data);
+export const deleteTransaction = (id) => isDemo() ? demoStore.delete('transactions', id) : API.delete(`/transactions/${id}`);
+export const updateTransaction = (id, data) => isDemo() ? demoStore.update('transactions', id, data) : API.put(`/transactions/${id}`, data);
 
 // ==============================
 // 💰 BUDGETS
 // ==============================
-export const getBudgets = () => API.get("/budgets");
-export const addBudget = (data) => API.post("/budgets", data);
-export const updateBudget = (id, data) => API.put(`/budgets/${id}`, data);
-export const deleteBudget = (id) => API.delete(`/budgets/${id}`);
+export const getBudgets = () => isDemo() ? demoStore.get('budgets') : API.get("/budgets");
+export const addBudget = (data) => isDemo() ? demoStore.add('budgets', data) : API.post("/budgets", data);
+export const updateBudget = (id, data) => isDemo() ? demoStore.update('budgets', id, data) : API.put(`/budgets/${id}`, data);
+export const deleteBudget = (id) => isDemo() ? demoStore.delete('budgets', id) : API.delete(`/budgets/${id}`);
 
 // ✅ ALIASES (Backwards Compatibility)
 export const getBudget = getBudgets;
@@ -46,43 +49,43 @@ export const saveBudget = addBudget;
 // ==============================
 // 🎯 SAVINGS GOALS
 // ==============================
-export const getSavingsGoals = () => API.get("/savings");
-export const addSavingsGoal = (data) => API.post("/savings", data);
-export const updateSavingsGoal = (id, data) => API.put(`/savings/${id}`, data);
-export const deleteSavingsGoal = (id) => API.delete(`/savings/${id}`);
+export const getSavingsGoals = () => isDemo() ? demoStore.get('savings') : API.get("/savings");
+export const addSavingsGoal = (data) => isDemo() ? demoStore.add('savings', data) : API.post("/savings", data);
+export const updateSavingsGoal = (id, data) => isDemo() ? demoStore.update('savings', id, data) : API.put(`/savings/${id}`, data);
+export const deleteSavingsGoal = (id) => isDemo() ? demoStore.delete('savings', id) : API.delete(`/savings/${id}`);
 
 // ==============================
 // 📋 DUES & DEBTS
 // ==============================
-export const getDues = () => API.get("/dues");
-export const addDue = (data) => API.post("/dues", data);
-export const updateDue = (id, data) => API.put(`/dues/${id}`, data);
-export const deleteDue = (id) => API.delete(`/dues/${id}`);
+export const getDues = () => isDemo() ? demoStore.get('dues') : API.get("/dues");
+export const addDue = (data) => isDemo() ? demoStore.add('dues', data) : API.post("/dues", data);
+export const updateDue = (id, data) => isDemo() ? demoStore.update('dues', id, data) : API.put(`/dues/${id}`, data);
+export const deleteDue = (id) => isDemo() ? demoStore.delete('dues', id) : API.delete(`/dues/${id}`);
 
 // ==============================
 // 💼 SALARY (Employee Mode)
 // ==============================
-export const getSalaries = () => API.get("/salary");
-export const addSalary = (data) => API.post("/salary", data);
-export const updateSalary = (id, data) => API.put(`/salary/${id}`, data);
-export const deleteSalary = (id) => API.delete(`/salary/${id}`);
+export const getSalaries = () => isDemo() ? demoStore.get('salary') : API.get("/salary");
+export const addSalary = (data) => isDemo() ? demoStore.add('salary', data) : API.post("/salary", data);
+export const updateSalary = (id, data) => isDemo() ? demoStore.update('salary', id, data) : API.put(`/salary/${id}`, data);
+export const deleteSalary = (id) => isDemo() ? demoStore.delete('salary', id) : API.delete(`/salary/${id}`);
 
 // ==============================
 // 📅 REMINDERS
 // ==============================
-export const getReminders = () => API.get("/reminders");
-export const addReminder = (data) => API.post("/reminders", data);
-export const updateReminder = (id, data) => API.put(`/reminders/${id}`, data);
-export const deleteReminder = (id) => API.delete(`/reminders/${id}`);
+export const getReminders = () => isDemo() ? demoStore.get('reminders') : API.get("/reminders");
+export const addReminder = (data) => isDemo() ? demoStore.add('reminders', data) : API.post("/reminders", data);
+export const updateReminder = (id, data) => isDemo() ? demoStore.update('reminders', id, data) : API.put(`/reminders/${id}`, data);
+export const deleteReminder = (id) => isDemo() ? demoStore.delete('reminders', id) : API.delete(`/reminders/${id}`);
 
 // ==============================
 // ⭐ REVIEWS
 // ==============================
 export const getReviews = () => API.get("/reviews");
-export const getMyReviews = () => API.get("/reviews/me");
-export const addReview = (data) => API.post("/reviews", data);
+export const getMyReviews = () => isDemo() ? demoStore.get('reviews') : API.get("/reviews/me");
+export const addReview = (data) => isDemo() ? demoStore.add('reviews', data) : API.post("/reviews", data);
 
-export const updateReview = (id, data) => API.put(`/reviews/${id}`, data);
-export const deleteReview = (id) => API.delete(`/reviews/${id}`);
+export const updateReview = (id, data) => isDemo() ? demoStore.update('reviews', id, data) : API.put(`/reviews/${id}`, data);
+export const deleteReview = (id) => isDemo() ? demoStore.delete('reviews', id) : API.delete(`/reviews/${id}`);
 
 
