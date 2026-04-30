@@ -139,49 +139,18 @@ export function LandingPage({ onNavigate, userMode = "student", onModeChange }: 
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
-  const defaultReviews = [
-    {
-      id: "def-1",
-      user_name: "Arjun Sharma",
-      user_mode: "student",
-      rating: 5,
-      comment: "CampusSpend helped me save enough for my new laptop in just 6 months! The budget tracking is so easy to use.",
-      role: "student"
-    },
-    {
-      id: "def-2",
-      user_name: "Priya Patel",
-      user_mode: "employee",
-      rating: 5,
-      comment: "Finally an app that understands Indian banking and UPI spending. The Pro mode is perfect for managing my salary.",
-      role: "employee"
-    },
-    {
-      id: "def-3",
-      user_name: "Rahul Verma",
-      user_mode: "student",
-      rating: 4,
-      comment: "The analytics are amazing. I never realized how much I was spending on food until I started using this app.",
-      role: "student"
-    }
-  ];
-
-
-
   const fetchReviews = async () => {
     try {
       const res = await getReviews();
       if (res.data && res.data.length > 0) {
-        // Merge real reviews with defaults to ensure a full grid
-        const combined = [...res.data, ...defaultReviews].slice(0, 6);
-        setReviews(combined);
+        setReviews(res.data);
       } else {
-        setReviews(defaultReviews);
+        setReviews([]);
       }
 
     } catch (err) {
       console.error("Failed to fetch reviews:", err);
-      setReviews(defaultReviews);
+      setReviews([]);
     }
   };
 
