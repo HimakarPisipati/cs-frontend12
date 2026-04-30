@@ -200,14 +200,35 @@ export function TutorialOverlay({ onComplete, onNavigate, userMode }: TutorialOv
 
       {/* Tutorial Card */}
       <div 
-        className="absolute pointer-events-auto transition-all duration-300 w-[320px] sm:w-[400px]"
-        style={{
-          top: step.position === 'bottom' ? coords.top + coords.height + 20 : 
-               step.position === 'top' ? coords.top - 210 : 
-               coords.top + (coords.height / 2) - 100,
-          left: step.position === 'right' ? coords.left + coords.width + 20 :
-                Math.max(20, Math.min(window.innerWidth - 420, coords.left + (coords.width / 2) - 200)),
-        }}
+        className="fixed pointer-events-auto transition-all duration-300 w-[320px] sm:w-[400px] z-[101]"
+        style={(() => {
+          let top = 0;
+          let left = Math.max(20, Math.min(window.innerWidth - 420, coords.left + (coords.width / 2) - 200));
+          
+          if (step.position === 'bottom') {
+            top = coords.top + coords.height + 20;
+            // If card would be off screen at bottom, flip to top
+            if (top + 200 > window.innerHeight) {
+              top = coords.top - 220;
+            }
+          } else if (step.position === 'top') {
+            top = coords.top - 220;
+            // If card would be off screen at top, flip to bottom
+            if (top < 20) {
+              top = coords.top + coords.height + 20;
+            }
+          } else if (step.position === 'right') {
+            top = coords.top + (coords.height / 2) - 100;
+            left = coords.left + coords.width + 20;
+          } else {
+            top = coords.top + (coords.height / 2) - 100;
+          }
+          
+          // Final safety check for vertical bounds
+          top = Math.max(20, Math.min(window.innerHeight - 250, top));
+          
+          return { top, left };
+        })()}
       >
         <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-6 border border-gray-100 dark:border-gray-700">
           <div className="flex items-start justify-between mb-4">
