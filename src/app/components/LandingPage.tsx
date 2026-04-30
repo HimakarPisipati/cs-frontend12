@@ -39,22 +39,21 @@ import { Textarea } from "./ui/textarea";
 
 interface LandingPageProps {
   onNavigate: (page: string) => void;
+  userMode?: string;
+  onModeChange?: (mode: string) => void;
 }
 
 
-export function LandingPage({ onNavigate }: LandingPageProps) {
+export function LandingPage({ onNavigate, userMode = "student", onModeChange }: LandingPageProps) {
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark") ||
       localStorage.getItem("theme") === "dark";
   });
-  const [landingMode, setLandingMode] = useState<'student' | 'employee'>(() => {
-    return (localStorage.getItem('landingMode') as 'student' | 'employee') || 'student';
-  });
-  const isEmp = landingMode === 'employee';
+  
+  const isEmp = userMode === 'employee';
 
   const updateLandingMode = (mode: 'student' | 'employee') => {
-    setLandingMode(mode);
-    localStorage.setItem('landingMode', mode);
+    if (onModeChange) onModeChange(mode);
   };
 
   useEffect(() => {

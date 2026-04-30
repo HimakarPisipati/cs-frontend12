@@ -93,7 +93,7 @@ export default function App() {
 
   // Public pages
   if (currentPage === "landing") {
-    return <LandingPage onNavigate={handleNavigate} />;
+    return <LandingPage onNavigate={handleNavigate} userMode={userMode} onModeChange={handleModeChange} />;
   }
 
   // ✅ Make sure your LoginPage calls onNavigate('dashboard') upon success
