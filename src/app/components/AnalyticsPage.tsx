@@ -161,7 +161,7 @@ export function AnalyticsPage({ userMode = 'student' }: AnalyticsPageProps) {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div id="tutorial-analytics-charts" className="grid lg:grid-cols-2 gap-6">
         <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors dark:border-gray-700">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Category Breakdown</h3>

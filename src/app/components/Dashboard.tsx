@@ -684,6 +684,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
       {showTutorial && (
         <TutorialOverlay 
           userMode={userMode} 
+          onNavigate={onNavigate}
           onComplete={() => {
             setShowTutorial(false);
             sessionStorage.setItem("tutorial_completed", "true");

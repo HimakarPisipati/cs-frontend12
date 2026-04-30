@@ -414,7 +414,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
       </Card>
 
       {/* 2.5 Mode Switch Card */}
-      <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
+      <Card id="tutorial-settings-mode" className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
         <div className="flex items-center gap-3 mb-6">
           <div className={`w-12 h-12 rounded-full flex items-center justify-center ${userMode === 'employee' ? 'bg-gradient-to-br from-blue-500 to-cyan-500' : 'bg-gradient-to-br from-purple-500 to-blue-500'}`}>
             {userMode === 'employee' ? <Briefcase className="w-6 h-6 text-white" /> : <GraduationCap className="w-6 h-6 text-white" />}

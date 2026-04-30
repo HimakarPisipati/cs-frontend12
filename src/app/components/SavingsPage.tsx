@@ -216,7 +216,7 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
         })}
 
         {/* Add New Goal Card */}
-        <Card className={`p-6 bg-white/60 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-dashed border-gray-300 dark:border-gray-600 ${newGoalHover} transition-all cursor-pointer`}>
+        <Card id="tutorial-savings-add" className={`p-6 bg-white/60 dark:bg-gray-800/50 backdrop-blur-sm border-2 border-dashed border-gray-300 dark:border-gray-600 ${newGoalHover} transition-all cursor-pointer`}>
           <button
             onClick={() => setShowAddModal(true)}
             className="w-full h-full flex flex-col items-center justify-center gap-3 min-h-[200px]"

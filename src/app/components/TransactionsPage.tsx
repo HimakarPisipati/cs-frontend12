@@ -265,6 +265,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
             Export
           </Button>
           <Button
+            id="tutorial-transactions-add"
             onClick={() => setShowAddModal(true)}
             className={`bg-gradient-to-r ${gradient} ${gradientHover}`}
           >

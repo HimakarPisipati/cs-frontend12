@@ -7,14 +7,16 @@ interface Step {
   title: string;
   content: string;
   position: 'top' | 'bottom' | 'left' | 'right' | 'center';
+  page?: string;
 }
 
 interface TutorialOverlayProps {
   onComplete: () => void;
+  onNavigate: (page: string) => void;
   userMode: string;
 }
 
-export function TutorialOverlay({ onComplete, userMode }: TutorialOverlayProps) {
+export function TutorialOverlay({ onComplete, onNavigate, userMode }: TutorialOverlayProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0, height: 0 });
   const isEmployee = userMode === 'employee';
@@ -27,38 +29,58 @@ export function TutorialOverlay({ onComplete, userMode }: TutorialOverlayProps) 
     {
       targetId: 'tutorial-header',
       title: "Welcome to CampusSpend!",
-      content: `Let's take a 30-second tour of your ${isEmployee ? 'Professional' : 'Student'} finance dashboard.`,
-      position: 'bottom'
+      content: `Let's take a tour of your ${isEmployee ? 'Professional' : 'Student'} finance dashboard.`,
+      position: 'bottom',
+      page: 'dashboard'
     },
     {
       targetId: 'tutorial-balance',
-      title: "Your Financial Snapshot",
-      content: "Track your current balance, monthly spending, and remaining budget in real-time.",
-      position: 'bottom'
-    },
-    {
-      targetId: 'tutorial-charts',
-      title: "Visual Analytics",
-      content: "See where your money goes with category breakdowns and weekly spending trends.",
-      position: 'top'
-    },
-    {
-      targetId: 'tutorial-reminders',
-      title: "Never Miss a Bill",
-      content: "Keep track of your upcoming payments and set reminders to avoid late fees.",
-      position: 'top'
-    },
-    {
-      targetId: 'tutorial-recent',
-      title: "Recent Activity",
-      content: "Quickly review your latest expenses and income entries here.",
-      position: 'top'
+      title: "Financial Snapshot",
+      content: "Track your balance, monthly spending, and remaining budget here.",
+      position: 'bottom',
+      page: 'dashboard'
     },
     {
       targetId: 'tutorial-nav',
-      title: "Full Control",
-      content: "Use the navigation menu to manage Transactions, Budgets, Savings, and more.",
-      position: 'right'
+      title: "Navigation Menu",
+      content: "Use this menu to switch between different sections of the app.",
+      position: 'right',
+      page: 'dashboard'
+    },
+    {
+      targetId: 'tutorial-transactions-add',
+      title: "Track Transactions",
+      content: "Easily add new expenses or income. Your history is automatically categorized.",
+      position: 'bottom',
+      page: 'transactions'
+    },
+    {
+      targetId: 'tutorial-budgets-add',
+      title: "Smart Budgeting",
+      content: "Set monthly limits for different categories to keep your spending in check.",
+      position: 'bottom',
+      page: 'budgets'
+    },
+    {
+      targetId: 'tutorial-savings-add',
+      title: "Savings Goals",
+      content: "Save for big purchases by setting goals and tracking your progress.",
+      position: 'bottom',
+      page: 'savings'
+    },
+    {
+      targetId: 'tutorial-analytics-charts',
+      title: "Detailed Analytics",
+      content: "Get deep insights into your spending patterns with advanced charts.",
+      position: 'top',
+      page: 'analytics'
+    },
+    {
+      targetId: 'tutorial-settings-mode',
+      title: "Settings & Customization",
+      content: "Switch between Student and Employee modes or change your theme here.",
+      position: 'bottom',
+      page: 'settings'
     }
   ];
 
@@ -79,27 +101,36 @@ export function TutorialOverlay({ onComplete, userMode }: TutorialOverlayProps) 
       }
     };
 
-    // Auto-scroll when step changes
     const step = steps[currentStep];
-    const element = document.getElementById(step.targetId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Check if we need to navigate
+    if (step.page) {
+      onNavigate(step.page);
     }
 
+    // Auto-scroll when step changes
+    const scrollElement = () => {
+      const element = document.getElementById(step.targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        updateCoords();
+      }
+    };
+
     // Update positions on scroll/resize
-    updateCoords();
     window.addEventListener('scroll', updateCoords, true);
     window.addEventListener('resize', updateCoords);
     
-    // Initial delay to wait for any page transitions or smooth scrolls
-    const timer = setTimeout(updateCoords, 100);
-    const timer2 = setTimeout(updateCoords, 500); // Second check after smooth scroll might have moved more
+    // Multiple checks to account for page transitions and rendering
+    const timers = [100, 300, 500, 1000].map(ms => setTimeout(() => {
+      scrollElement();
+      updateCoords();
+    }, ms));
 
     return () => {
       window.removeEventListener('scroll', updateCoords, true);
       window.removeEventListener('resize', updateCoords);
-      clearTimeout(timer);
-      clearTimeout(timer2);
+      timers.forEach(clearTimeout);
     };
   }, [currentStep]);
 

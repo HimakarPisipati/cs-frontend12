@@ -143,6 +143,7 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
             </p>
           </div>
           <Button
+            id="tutorial-budgets-add"
             onClick={() => {
               setEditingId(null);
               setCategory("General");
