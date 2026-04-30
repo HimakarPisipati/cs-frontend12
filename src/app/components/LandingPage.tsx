@@ -617,10 +617,6 @@ export function LandingPage({ onNavigate, userMode = "student", onModeChange }: 
                 >
                   Learn More About Mobile
                 </Button>
-                <div className="flex items-center gap-3">
-                  <Apple className="w-6 h-6 text-gray-400" />
-                  <Play className="w-5 h-5 text-gray-400" />
-                </div>
               </div>
             </div>
             <div className="md:w-1/2 relative">

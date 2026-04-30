@@ -96,7 +96,6 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
                   size="lg" 
                   className="bg-black hover:bg-gray-800 text-white rounded-2xl h-16 px-8 flex items-center gap-3 transition-transform hover:scale-105"
                 >
-                  <Apple className="w-7 h-7" />
                   <div className="text-left">
                     <div className="text-[10px] uppercase font-bold opacity-70">Download on the</div>
                     <div className="text-xl font-bold leading-none">App Store</div>
@@ -107,7 +106,6 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
                   size="lg" 
                   className="bg-black hover:bg-gray-800 text-white rounded-2xl h-16 px-8 flex items-center gap-3 transition-transform hover:scale-105"
                 >
-                  <Play className="w-7 h-7" />
                   <div className="text-left">
                     <div className="text-[10px] uppercase font-bold opacity-70">Get it on</div>
                     <div className="text-xl font-bold leading-none">Google Play</div>
@@ -152,9 +150,6 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
               <Card className="p-8 bg-white dark:bg-gray-800 border-0 shadow-xl overflow-hidden relative group">
                 <div className={`absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150`}></div>
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center">
-                    <Apple className="w-6 h-6 text-white" />
-                  </div>
                   <div>
                     <h3 className="text-xl font-bold dark:text-white">CampusSpend for iOS</h3>
                     <p className="text-sm text-gray-500">Requires iOS 15.0 or later</p>
@@ -173,9 +168,6 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
               <Card className="p-8 bg-white dark:bg-gray-800 border-0 shadow-xl overflow-hidden relative group">
                 <div className={`absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150`}></div>
                 <div className="flex items-center gap-4 mb-8">
-                  <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center">
-                    <Play className="w-6 h-6 text-white" />
-                  </div>
                   <div>
                     <h3 className="text-xl font-bold dark:text-white">CampusSpend for Android</h3>
                     <p className="text-sm text-gray-500">Requires Android 8.0 or later</p>
