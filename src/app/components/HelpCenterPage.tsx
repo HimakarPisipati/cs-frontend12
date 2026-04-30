@@ -358,15 +358,15 @@ export function HelpCenterPage({ onNavigate, userMode = "student" }: HelpCenterP
               <Card className="p-6 border-0 shadow-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">Quick Links</h3>
                 <div className="space-y-3">
-                  <button onClick={() => onNavigate('privacy-policy')} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                  <button onClick={() => onNavigate('privacy-policy')} className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${isEmp ? 'hover:text-blue-600 dark:hover:text-blue-400' : 'hover:text-purple-600 dark:hover:text-purple-400'} transition-colors`}>
                     <Book className="w-4 h-4" />
                     Privacy Policy
                   </button>
-                  <button onClick={() => onNavigate('contact-us')} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                  <button onClick={() => onNavigate('contact-us')} className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${isEmp ? 'hover:text-blue-600 dark:hover:text-blue-400' : 'hover:text-purple-600 dark:hover:text-purple-400'} transition-colors`}>
                     <Mail className="w-4 h-4" />
                     Contact Us
                   </button>
-                  <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
+                  <button className={`flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ${isEmp ? 'hover:text-blue-600 dark:hover:text-blue-400' : 'hover:text-purple-600 dark:hover:text-purple-400'} transition-colors`}>
                     <User className="w-4 h-4" />
                     Terms of Service
                   </button>

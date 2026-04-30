@@ -346,7 +346,7 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
             <div className="mt-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl space-y-1">
               <p className="font-medium text-gray-800 dark:text-gray-200">Himakar Pisipati</p>
               <p className="text-sm">Developer & Creator of CampusSpend</p>
-              <a href="mailto:campusspend@gmail.com" className="text-sm text-purple-600 dark:text-purple-400 hover:underline">campusspend@gmail.com</a>
+              <a href="mailto:campusspend@gmail.com" className={`text-sm ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'} hover:underline`}>campusspend@gmail.com</a>
             </div>
           </PolicySection>
 
