@@ -26,9 +26,10 @@ interface SectionProps {
   title: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
+  isEmp?: boolean;
 }
 
-function PolicySection({ icon, title, children, defaultOpen = false }: SectionProps) {
+function PolicySection({ icon, title, children, defaultOpen = false, isEmp = false }: SectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
@@ -38,7 +39,7 @@ function PolicySection({ icon, title, children, defaultOpen = false }: SectionPr
         className="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors"
       >
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
+          <div className={`w-10 h-10 rounded-xl ${isEmp ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-purple-100 dark:bg-purple-900/30'} flex items-center justify-center shrink-0`}>
             {icon}
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
@@ -147,9 +148,10 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
           {/* Overview */}
           <PolicySection
-            icon={<Eye className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={<Eye className={`w-5 h-5 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />}
             title="1. Overview"
             defaultOpen={true}
+            isEmp={isEmp}
           >
             <p>
               CampusSpend ("we", "our", or "us") is a personal finance management application 
@@ -166,8 +168,9 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
 
           {/* Information We Collect */}
           <PolicySection
-            icon={<Database className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={<Database className={`w-5 h-5 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />}
             title="2. Information We Collect"
+            isEmp={isEmp}
           >
             <p className="font-medium text-gray-800 dark:text-gray-200 mb-2">
               We collect the following types of information:
@@ -195,8 +198,9 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
 
           {/* How We Use Your Information */}
           <PolicySection
-            icon={<UserCheck className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={<UserCheck className={`w-5 h-5 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />}
             title="3. How We Use Your Information"
+            isEmp={isEmp}
           >
             <p>We use the information we collect to:</p>
             <ul className="list-disc list-inside space-y-2 ml-2 mt-2">
@@ -215,8 +219,9 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
 
           {/* Data Security */}
           <PolicySection
-            icon={<Lock className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={<Lock className={`w-5 h-5 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />}
             title="4. Data Security & Encryption"
+            isEmp={isEmp}
           >
             <p>
               We take the security of your data seriously. Here are the measures we implement:
@@ -244,8 +249,9 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
 
           {/* Data Retention */}
           <PolicySection
-            icon={<Database className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={<Database className={`w-5 h-5 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />}
             title="5. Data Retention & Deletion"
+            isEmp={isEmp}
           >
             <p>
               Your data is retained as long as your account is active. You have full control 
@@ -267,8 +273,9 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
 
           {/* Cookies & Local Storage */}
           <PolicySection
-            icon={<Eye className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={<Eye className={`w-5 h-5 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />}
             title="6. Cookies & Local Storage"
+            isEmp={isEmp}
           >
             <p>CampusSpend uses browser local storage for:</p>
             <ul className="list-disc list-inside space-y-2 ml-2 mt-2">
@@ -284,8 +291,9 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
 
           {/* Email Communications */}
           <PolicySection
-            icon={<Mail className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={<Mail className={`w-5 h-5 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />}
             title="7. Email Communications"
+            isEmp={isEmp}
           >
             <p>We may send you emails for:</p>
             <ul className="list-disc list-inside space-y-2 ml-2 mt-2">
@@ -301,8 +309,9 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
 
           {/* Children's Privacy */}
           <PolicySection
-            icon={<Shield className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={<Shield className={`w-5 h-5 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />}
             title="8. Children's Privacy"
+            isEmp={isEmp}
           >
             <p>
               CampusSpend is designed for students aged 13 and above. We do not knowingly collect 
@@ -313,8 +322,9 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
 
           {/* Changes to This Policy */}
           <PolicySection
-            icon={<Eye className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={<Eye className={`w-5 h-5 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />}
             title="9. Changes to This Policy"
+            isEmp={isEmp}
           >
             <p>
               We may update this Privacy Policy from time to time. We will notify you of any 
@@ -325,8 +335,9 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
 
           {/* Contact */}
           <PolicySection
-            icon={<Mail className="w-5 h-5 text-purple-600 dark:text-purple-400" />}
+            icon={<Mail className={`w-5 h-5 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />}
             title="10. Contact Us"
+            isEmp={isEmp}
           >
             <p>
               If you have any questions about this Privacy Policy or our data practices, 
