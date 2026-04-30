@@ -15,6 +15,7 @@ import { RemindersPage } from "./components/RemindersPage";
 import { PrivacyPolicyPage } from "./components/PrivacyPolicyPage";
 import { HelpCenterPage } from "./components/HelpCenterPage";
 import { ContactUsPage } from "./components/ContactUsPage";
+import { login } from "../api/services";
 
 export default function App() {
   const token = localStorage.getItem("token");
@@ -52,9 +53,36 @@ export default function App() {
     "reminders",
   ];
 
+  const handleDemoLogin = async () => {
+    try {
+      const demoEmail = "demo@campispend.com";
+      const demoPassword = "demo1234";
+      const res = await login({ email: demoEmail, password: demoPassword, user_mode: userMode });
+
+      // 🔥 Save token and user
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userMode", res.data.userMode || "student");
+      localStorage.setItem("user", JSON.stringify({
+        _id: res.data._id,
+        name: res.data.name,
+        email: res.data.email,
+        userMode: res.data.userMode || "student",
+      }));
+
+      setUserMode(res.data.userMode || "student");
+      setCurrentPage("dashboard");
+      window.scrollTo(0, 0);
+    } catch (err: any) {
+      console.error("Demo login failed:", err);
+      setCurrentPage("login"); // Fallback
+    }
+  };
+
   const handleNavigate = (page: string) => {
-    // ❌ REMOVED: Automatic logout on landing/login navigation
-    // We should only logout via an explicit logout button.
+    if (page === "demo-login") {
+      handleDemoLogin();
+      return;
+    }
     
     if (page === "login" && localStorage.getItem("token")) {
       // If already logged in and trying to go to login page, send to dashboard

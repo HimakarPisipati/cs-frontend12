@@ -323,10 +323,7 @@ export function LandingPage({ onNavigate, userMode = "student", onModeChange }: 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
                 size="lg"
-                onClick={() => {
-                  localStorage.setItem("demoLogin", "true");
-                  onNavigate('login');
-                }}
+                onClick={() => onNavigate('demo-login')}
                 className={`bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700' : 'from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'} text-lg px-8 h-14`}
               >
                 Try Demo
