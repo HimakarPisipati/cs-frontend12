@@ -596,6 +596,43 @@ export function LandingPage({ onNavigate, userMode = "student", onModeChange }: 
         </div>
       </section>
 
+      {/* Mobile App Promotion */}
+      <section className="py-20 bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`rounded-3xl bg-gradient-to-br ${isEmp ? 'from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20' : 'from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20'} p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12`}>
+            <div className="md:w-1/2">
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+                Take CampusSpend <br />
+                <span className={`bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} bg-clip-text text-transparent`}>Anywhere You Go</span>
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                Scan receipts, get instant alerts, and track expenses on the move. Our mobile app keeps your finances synced in real-time.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Button 
+                  onClick={() => onNavigate('mobile-app')}
+                  className={`rounded-2xl h-14 px-8 bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} text-white shadow-lg transition-transform hover:scale-105`}
+                >
+                  Learn More About Mobile
+                </Button>
+                <div className="flex items-center gap-3">
+                  <Apple className="w-6 h-6 text-gray-400" />
+                  <Play className="w-5 h-5 text-gray-400" />
+                </div>
+              </div>
+            </div>
+            <div className="md:w-1/2 relative">
+              <div className={`absolute -inset-4 bg-gradient-to-r ${isEmp ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-full blur-3xl opacity-10 animate-pulse`}></div>
+              <img 
+                src="/mobile-app-mockup.png" 
+                alt="Mobile App" 
+                className="relative w-full max-w-sm mx-auto drop-shadow-2xl transition-transform hover:rotate-2 duration-500"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className={`py-20 bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} text-white`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -650,7 +687,7 @@ export function LandingPage({ onNavigate, userMode = "student", onModeChange }: 
               <h3 className="font-semibold text-white mb-4">Product</h3>
               <ul className="space-y-2 text-sm">
                 <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Mobile App</a></li>
+                <li><button onClick={() => onNavigate('mobile-app')} className="hover:text-white transition-colors text-sm font-normal">Mobile App</button></li>
               </ul>
             </div>
 

@@ -15,6 +15,7 @@ import { RemindersPage } from "./components/RemindersPage";
 import { PrivacyPolicyPage } from "./components/PrivacyPolicyPage";
 import { HelpCenterPage } from "./components/HelpCenterPage";
 import { ContactUsPage } from "./components/ContactUsPage";
+import { MobileAppPage } from "./components/MobileAppPage";
 import { login } from "../api/services";
 
 export default function App() {
@@ -139,6 +140,10 @@ export default function App() {
 
   if (currentPage === "contact-us") {
     return <ContactUsPage onNavigate={handleNavigate} userMode={userMode} />;
+  }
+
+  if (currentPage === "mobile-app") {
+    return <MobileAppPage onNavigate={handleNavigate} userMode={userMode} />;
   }
 
   // Protected pages layout
