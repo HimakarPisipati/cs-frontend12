@@ -5,7 +5,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import {
-  User, Bell, Palette, Lock, Download, Trash2, Moon, Sun, X, AlertTriangle, ShieldCheck, KeyRound, Briefcase, GraduationCap, Star, Edit2, MessageSquare
+  User, Bell, Palette, Lock, Download, Trash2, Moon, Sun, X, AlertTriangle, ShieldCheck, KeyRound, Briefcase, GraduationCap, Star, Edit2, MessageSquare, Headphones, FileText, HelpCircle, ChevronRight, Wallet
 } from "lucide-react";
 
 // ✅ Import updateProfile here
@@ -29,6 +29,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
   // --- NOTIFICATION STATE ---
   const [notifications, setNotifications] = useState(true);
   const [budgetAlerts, setBudgetAlerts] = useState(true);
+  const [budgetModel, setBudgetModel] = useState<'old' | 'new'>('old');
 
   // --- PROFILE STATE ---
   const [name, setName] = useState("");
@@ -81,6 +82,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
         // Update State with real database values
         setName(data.name || "");
         setEmail(data.email || "");
+        setBudgetModel(data.budgetModel || 'old');
 
         // Sync user mode from backend
         if (data.userMode && onModeChange) {
@@ -410,6 +412,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
             </div>
             <Switch checked={notifications} onCheckedChange={setNotifications} />
           </div>
+
         </div>
       </Card>
 
@@ -503,6 +506,63 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
           <Trash2 className="w-4 h-4 mr-2" />
           Delete Account
         </Button>
+      </Card>
+
+      {/* 4.5 Support & Help Section */}
+      <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-emerald-500 rounded-full flex items-center justify-center">
+            <HelpCircle className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Support & Help</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Get assistance and read our policies</p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <button
+            onClick={() => onNavigate('help-center')}
+            className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <HelpCircle className={`w-5 h-5 ${userMode === 'employee' ? 'text-blue-500' : 'text-purple-500'}`} />
+              <div className="text-left">
+                <p className="font-medium text-gray-900 dark:text-white">Help Center</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Tutorials and guides</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
+          </button>
+
+          <button
+            onClick={() => onNavigate('contact-us')}
+            className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <Headphones className={`w-5 h-5 ${userMode === 'employee' ? 'text-blue-500' : 'text-purple-500'}`} />
+              <div className="text-left">
+                <p className="font-medium text-gray-900 dark:text-white">Contact Us</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Get in touch with support</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
+          </button>
+
+          <button
+            onClick={() => onNavigate('privacy-policy')}
+            className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <FileText className={`w-5 h-5 ${userMode === 'employee' ? 'text-blue-500' : 'text-purple-500'}`} />
+              <div className="text-left">
+                <p className="font-medium text-gray-900 dark:text-white">Privacy Policy</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Our terms and data usage</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
       </Card>
 
       {/* 🔹 CHANGE PASSWORD MODAL */}

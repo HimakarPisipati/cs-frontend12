@@ -65,6 +65,7 @@ export default function App() {
       name: "Demo User",
       email: "demo@campispend.com",
       userMode: userMode,
+      budgetModel: 'old',
     }));
 
     setUserMode(userMode);

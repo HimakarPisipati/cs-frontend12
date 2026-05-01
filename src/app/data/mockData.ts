@@ -24,28 +24,28 @@ export interface SavingsGoal {
 }
 
 export const studentCategories = [
-  { name: 'Food', icon: '🍔', color: 'bg-orange-500' },
-  { name: 'Transport', icon: '🚗', color: 'bg-blue-500' },
-  { name: 'Shopping', icon: '🛍️', color: 'bg-pink-500' },
-  { name: 'Rent', icon: '🏠', color: 'bg-purple-500' },
-  { name: 'Education', icon: '📚', color: 'bg-green-500' },
-  { name: 'Entertainment', icon: '🎮', color: 'bg-red-500' },
-  { name: 'Healthcare', icon: '💊', color: 'bg-teal-500' },
-  { name: 'Other', icon: '💰', color: 'bg-gray-500' },
+  { name: 'Food', icon: 'Utensils', color: 'bg-orange-500' },
+  { name: 'Transport', icon: 'Car', color: 'bg-blue-500' },
+  { name: 'Shopping', icon: 'ShoppingBag', color: 'bg-pink-500' },
+  { name: 'Rent', icon: 'Home', color: 'bg-purple-500' },
+  { name: 'Education', icon: 'GraduationCap', color: 'bg-green-500' },
+  { name: 'Entertainment', icon: 'Gamepad2', color: 'bg-red-500' },
+  { name: 'Healthcare', icon: 'Stethoscope', color: 'bg-teal-500' },
+  { name: 'Other', icon: 'MoreHorizontal', color: 'bg-gray-500' },
 ];
 
 export const employeeCategories = [
-  { name: 'Food', icon: '🍔', color: 'bg-orange-500' },
-  { name: 'Commute', icon: '🚗', color: 'bg-blue-500' },
-  { name: 'Shopping', icon: '🛍️', color: 'bg-pink-500' },
-  { name: 'Rent / EMI', icon: '🏠', color: 'bg-purple-500' },
-  { name: 'Utilities', icon: '💡', color: 'bg-yellow-500' },
-  { name: 'Entertainment', icon: '🎮', color: 'bg-red-500' },
-  { name: 'Healthcare', icon: '💊', color: 'bg-teal-500' },
-  { name: 'Office Supplies', icon: '📎', color: 'bg-indigo-500' },
-  { name: 'Investments', icon: '📈', color: 'bg-green-500' },
-  { name: 'Subscriptions', icon: '📱', color: 'bg-cyan-500' },
-  { name: 'Other', icon: '💰', color: 'bg-gray-500' },
+  { name: 'Food', icon: 'Utensils', color: 'bg-orange-500' },
+  { name: 'Commute', icon: 'Bus', color: 'bg-blue-500' },
+  { name: 'Shopping', icon: 'ShoppingBag', color: 'bg-pink-500' },
+  { name: 'Rent / EMI', icon: 'Home', color: 'bg-purple-500' },
+  { name: 'Utilities', icon: 'Zap', color: 'bg-yellow-500' },
+  { name: 'Entertainment', icon: 'Gamepad2', color: 'bg-red-500' },
+  { name: 'Healthcare', icon: 'Stethoscope', color: 'bg-teal-500' },
+  { name: 'Office Supplies', icon: 'Paperclip', color: 'bg-indigo-500' },
+  { name: 'Investments', icon: 'TrendingUp', color: 'bg-green-500' },
+  { name: 'Subscriptions', icon: 'Repeat', color: 'bg-cyan-500' },
+  { name: 'Other', icon: 'MoreHorizontal', color: 'bg-gray-500' },
 ];
 
 // Default export for backward compatibility

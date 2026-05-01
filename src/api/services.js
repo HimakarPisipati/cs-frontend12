@@ -16,10 +16,31 @@ export const resetPassword = (data) => API.post("/auth/reset-password", data);
 // ✅ NEW: Profile Management
 export const changePassword = (data) => API.put("/auth/change-password", data);
 export const deleteAccount = (data) => API.delete("/auth/delete-account", { data });
-export const updateProfile = (data) => API.put("/auth/update-profile", data);
-// Add this to your exports:
-export const getUserProfile = () => API.get("/auth/me");
-export const switchMode = (data) => API.post("/auth/switch-mode", data);
+export const updateProfile = (data) => {
+  if (isDemo()) {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const updated = { ...user, ...data };
+    localStorage.setItem("user", JSON.stringify(updated));
+    return Promise.resolve({ data: updated });
+  }
+  return API.put("/auth/update-profile", data);
+};
+export const getUserProfile = () => {
+  if (isDemo()) {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    return Promise.resolve({ data: user });
+  }
+  return API.get("/auth/me");
+};
+export const switchMode = (data) => {
+  if (isDemo()) {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    user.mode = data.mode;
+    localStorage.setItem("user", JSON.stringify(user));
+    return Promise.resolve({ data: user });
+  }
+  return API.post("/auth/switch-mode", data);
+};
 // Note: Axios requires body data for DELETE requests to be wrapped in { data: ... }
 
 // ✅ ALIASES (Backwards Compatibility)

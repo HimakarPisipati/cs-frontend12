@@ -102,7 +102,7 @@ export function ContactUsPage({ onNavigate, userMode = "student" }: ContactUsPag
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onNavigate("landing")}
+                onClick={() => onNavigate(localStorage.getItem("token") ? "settings" : "landing")}
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white -ml-2"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
@@ -314,7 +314,7 @@ export function ContactUsPage({ onNavigate, userMode = "student" }: ContactUsPag
             </div>
             <p className="text-sm mb-6 max-w-md mx-auto">Making money management simple for students and professionals everywhere.</p>
             <div className="flex justify-center gap-8 text-sm">
-              <button onClick={() => onNavigate('landing')} className="hover:text-white transition-colors text-sm font-normal">Home</button>
+              <button onClick={() => onNavigate(localStorage.getItem("token") ? "dashboard" : "landing")} className="hover:text-white transition-colors text-sm font-normal">Home</button>
               <button onClick={() => onNavigate('privacy-policy')} className="hover:text-white transition-colors text-sm font-normal">Privacy</button>
               <button onClick={() => onNavigate('help-center')} className="hover:text-white transition-colors text-sm font-normal">Help Center</button>
             </div>

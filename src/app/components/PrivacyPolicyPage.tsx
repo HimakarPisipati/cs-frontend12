@@ -92,7 +92,7 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onNavigate("landing")}
+                onClick={() => onNavigate(localStorage.getItem("token") ? "settings" : "landing")}
                 className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white -ml-2"
               >
                 <ArrowLeft className="w-4 h-4 mr-1" />
@@ -354,11 +354,11 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
           <div className="pt-8 text-center">
             <Button
               size="lg"
-              onClick={() => onNavigate("landing")}
+              onClick={() => onNavigate(localStorage.getItem("token") ? "settings" : "landing")}
               className={`bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700' : 'from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'} text-lg px-8 h-14`}
             >
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Back to Home
+              Back {localStorage.getItem("token") ? "to Settings" : "to Home"}
             </Button>
           </div>
         </div>

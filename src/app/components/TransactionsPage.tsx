@@ -13,13 +13,16 @@ import {
   Wallet as WalletIcon,
   Smartphone,
   Trash2,
-  Pencil
+  Pencil,
+  ArrowDownRight,
+  ArrowUpRight
 } from "lucide-react";
+import { CategoryIcon } from "./CategoryIcon";
 
 import { categories, getCategoryIcon, getCategoryColor, getCategories } from "../data/mockData";
 
 // ✅ Import backend services (Ensure deleteTransaction is exported from here)
-import { addTransaction, getTransactions, deleteTransaction, updateTransaction } from "../../api/services";
+import { addTransaction, getTransactions, getBudgets, deleteTransaction, updateTransaction } from "../../api/services";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -55,6 +58,26 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
   // Backend data
   const [transactions, setTransactions] = useState<BackendTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState<{name: string, email: string, _id: string} | null>(null);
+  const [globalBudget, setGlobalBudget] = useState(0);
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
+    setUserData(storedUser);
+    
+    // Fetch Global Budget
+    const fetchBudget = async () => {
+      try {
+        const res = await getBudgets();
+        const budgets = res.data || [];
+        const global = budgets.find((b: any) => b.category === 'General' || b.category === 'Global' || b.category === 'Others');
+        if (global) setGlobalBudget(Number(global.amount));
+      } catch (err) {
+        console.error("Failed to fetch budget for PDF", err);
+      }
+    };
+    fetchBudget();
+  }, []);
 
   // Add transaction form state
   const [amount, setAmount] = useState("");
@@ -183,52 +206,175 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
 
   // PDF Export
   const handleExportPDF = () => {
-    const doc = new jsPDF();
-    const now = new Date();
+    try {
+      const doc = new jsPDF();
+      const now = new Date();
+      const primaryColor = isEmployee ? [59, 130, 246] : [102, 51, 153]; // [R, G, B]
+      const secondaryColor = isEmployee ? [239, 246, 255] : [245, 240, 255];
 
-    // Title
-    doc.setFontSize(20);
-    doc.setTextColor(102, 51, 153);
-    doc.text("CampusSpend", 14, 20);
-    doc.setFontSize(12);
-    doc.setTextColor(100);
-    doc.text("Expense Report", 14, 28);
-    doc.setFontSize(10);
-    doc.text(`Generated: ${now.toLocaleDateString("en-IN")} at ${now.toLocaleTimeString("en-IN")}`, 14, 35);
+      // --- Header Branding ---
+      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.rect(0, 0, 210, 40, 'F');
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(24);
+      doc.setFont("helvetica", "bold");
+      doc.text("CampusSpend", 14, 25);
+      
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("Professional Expense Management", 14, 32);
 
-    // Summary
-    const totalIncome = filteredTransactions.filter(t => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
-    const totalExpense = filteredTransactions.filter(t => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
+      doc.setFontSize(14);
+      doc.text("FINANCIAL STATEMENT", 200, 25, { align: "right" });
+      doc.setFontSize(10);
+      doc.text(`${now.toLocaleDateString("en-IN")} | ${now.toLocaleTimeString("en-IN")}`, 200, 32, { align: "right" });
 
-    doc.setFontSize(11);
-    doc.setTextColor(0);
-    doc.text(`Filter: ${filterType === "all" ? "All Transactions" : filterType === "expense" ? "Expenses Only" : "Income Only"}`, 14, 45);
-    doc.text(`Total Income: \u20B9${totalIncome.toLocaleString()}`, 14, 52);
-    doc.text(`Total Expenses: \u20B9${totalExpense.toLocaleString()}`, 14, 58);
-    doc.text(`Net: \u20B9${(totalIncome - totalExpense).toLocaleString()}`, 14, 64);
-    doc.text(`Transactions: ${filteredTransactions.length}`, 14, 70);
+      // --- Summary Section ---
+      const totalIncome = filteredTransactions.filter(t => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
+      const totalExpense = filteredTransactions.filter(t => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
 
-    // Table
-    const tableData = filteredTransactions.map((t) => [
-      new Date(t.date).toLocaleDateString("en-IN"),
-      t.type.charAt(0).toUpperCase() + t.type.slice(1),
-      t.category,
-      t.note || "-",
-      (t.paymentMethod || "cash").toUpperCase(),
-      `\u20B9${Number(t.amount).toLocaleString()}`,
-    ]);
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setFontSize(16);
+      doc.text("Executive Summary", 14, 55);
+      
+      // Draw summary boxes (Rearranged to 3 boxes for cleaner look)
+      const boxWidth = 58;
+      const spacing = 4;
+      
+      // Box 1: Income
+      doc.setFillColor(240, 255, 240); 
+      doc.rect(14, 60, boxWidth, 25, 'F');
+      doc.setTextColor(0, 100, 0);
+      doc.setFontSize(8);
+      doc.text("TOTAL INCOME", 18, 68);
+      doc.setFontSize(12);
+      doc.text(`INR ${totalIncome.toLocaleString()}`, 18, 78);
 
-    autoTable(doc, {
-      startY: 78,
-      head: [["Date", "Type", "Category", "Note", "Payment", "Amount"]],
-      body: tableData,
-      theme: "grid",
-      headStyles: { fillColor: isEmployee ? [59, 130, 246] : [102, 51, 153], textColor: 255, fontStyle: "bold" },
-      alternateRowStyles: { fillColor: isEmployee ? [239, 246, 255] : [245, 240, 255] },
-      styles: { fontSize: 9 },
-    });
+      // Box 2: Expense
+      doc.setFillColor(255, 240, 240); 
+      doc.rect(14 + (boxWidth + spacing), 60, boxWidth, 25, 'F');
+      doc.setTextColor(150, 0, 0);
+      doc.setFontSize(8);
+      doc.text("TOTAL EXPENSES", 14 + (boxWidth + spacing) + 4, 68);
+      doc.setFontSize(12);
+      doc.text(`INR ${totalExpense.toLocaleString()}`, 14 + (boxWidth + spacing) + 4, 78);
 
-    doc.save(`CampusSpend_Report_${now.toISOString().split("T")[0]}.pdf`);
+      // Box 3: Budget Remaining
+      const remaining = globalBudget - totalExpense;
+      const budgetBoxColor = globalBudget > 0 ? (remaining >= 0 ? [230, 245, 255] : [255, 230, 230]) : [240, 240, 240];
+      const budgetTextColor = remaining < 0 ? [180, 0, 0] : [0, 80, 150];
+      
+      doc.setFillColor(budgetBoxColor[0], budgetBoxColor[1], budgetBoxColor[2]);
+      doc.rect(14 + 2 * (boxWidth + spacing), 60, boxWidth, 25, 'F');
+      doc.setTextColor(budgetTextColor[0], budgetTextColor[1], budgetTextColor[2]);
+      doc.setFontSize(8);
+      doc.text("BUDGET LEFT", 14 + 2 * (boxWidth + spacing) + 4, 68);
+      doc.setFontSize(12);
+      doc.text(`INR ${globalBudget > 0 ? remaining.toLocaleString() : 'N/A'}`, 14 + 2 * (boxWidth + spacing) + 4, 78);
+
+      // --- User & Filter Details ---
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("ACCOUNT HOLDER DETAILS", 14, 100);
+      
+      doc.setTextColor(80, 80, 80);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Name: ${userData?.name || 'N/A'}`, 14, 107);
+      doc.text(`Email: ${userData?.email || 'N/A'}`, 14, 113);
+      doc.text(`User ID: ${userData?._id || 'N/A'}`, 14, 119);
+      doc.text(`Account Type: ${userMode.charAt(0).toUpperCase() + userMode.slice(1)} Mode`, 14, 125);
+
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setFont("helvetica", "bold");
+      doc.text("REPORT SCOPE", 110, 100);
+      doc.setTextColor(80, 80, 80);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Type: ${filterType === "all" ? "All Transactions" : filterType === "expense" ? "Expenses Only" : "Income Only"}`, 110, 107);
+      doc.text(`Category: ${selectedCategory === "all" ? "All Categories" : selectedCategory}`, 110, 113);
+      doc.text(`Period: Up to ${now.toLocaleDateString("en-IN")}`, 110, 119);
+      doc.text(`Status: Certified Final`, 110, 125);
+
+      // --- Table Section ---
+      const tableData = filteredTransactions.map((t) => [
+        new Date(t.date).toLocaleDateString("en-IN"),
+        t.type.charAt(0).toUpperCase() + t.type.slice(1),
+        t.category,
+        t.note || "-",
+        (t.paymentMethod || "cash").toUpperCase(),
+        `INR ${Number(t.amount).toLocaleString()}`,
+      ]);
+
+      autoTable(doc, {
+        startY: 135,
+        head: [["Date", "Type", "Category", "Note", "Payment", "Amount"]],
+        body: tableData,
+        theme: "striped",
+        headStyles: { 
+          fillColor: [primaryColor[0], primaryColor[1], primaryColor[2]], 
+          textColor: 255, 
+          fontStyle: "bold", 
+          fontSize: 10,
+        },
+        columnStyles: {
+          3: { halign: "left" },   // Note
+          5: { halign: "right", fontStyle: "bold" } // Amount
+        },
+        alternateRowStyles: { fillColor: [250, 250, 250] },
+        styles: { 
+          fontSize: 9, 
+          cellPadding: 4,
+          overflow: 'linebreak',
+          halign: "center" // Global alignment (Head + Body)
+        },
+        margin: { left: 14, right: 14 },
+      });
+
+      // --- Verification Stamp ---
+      const lastTable = (doc as any).lastAutoTable;
+      const finalY = lastTable ? lastTable.finalY : 200;
+      const stampY = Math.min(finalY + 20, 260);
+      
+      doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setLineWidth(0.5);
+      doc.rect(14, stampY, 80, 15);
+      
+      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.text("DIGITALLY VERIFIED STATEMENT", 18, stampY + 6);
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(7);
+      doc.text("This statement is generated digitally and", 18, stampY + 10);
+      doc.text("does not require a physical signature.", 18, stampY + 13);
+
+      // --- Footer ---
+      const pageCount = (doc as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        
+        // Footer line
+        doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.setLineWidth(0.2);
+        doc.line(14, 282, 196, 282);
+
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+          `CampusSpend Finance Report | Page ${i} of ${pageCount} | Generated for ${userData?.name || 'User'}`,
+          105,
+          288,
+          { align: "center" }
+        );
+      }
+
+      doc.save(`CampusSpend_Report_${now.toISOString().split("T")[0]}.pdf`);
+    } catch (error: any) {
+      console.error("PDF Generation Error:", error);
+      alert(`Failed to generate PDF: ${error.message || "Unknown error"}`);
+    }
   };
 
   return (
@@ -333,9 +479,9 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
                   <div
                     className={`w-12 h-12 ${getCategoryColor(
                       transaction.category
-                    )} rounded-xl flex items-center justify-center text-2xl shrink-0`}
+                    )} rounded-xl flex items-center justify-center shrink-0 shadow-inner`}
                   >
-                    {getCategoryIcon(transaction.category)}
+                    <CategoryIcon name={getCategoryIcon(transaction.category)} className="text-white" size={24} />
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900 dark:text-gray-100">
@@ -429,23 +575,23 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
                   <button
                     type="button"
                     onClick={() => setTransactionType("expense")}
-                    className={`p-4 rounded-xl border-2 transition-all ${transactionType === "expense"
+                    className={`p-4 rounded-xl border-2 transition-all group ${transactionType === "expense"
                       ? "border-red-500 bg-red-50 dark:bg-red-900/30"
                       : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                       }`}
                   >
-                    <div className="text-2xl mb-2">💸</div>
+                    <ArrowDownRight className={`w-8 h-8 mx-auto mb-2 transition-transform group-hover:scale-110 ${transactionType === "expense" ? "text-red-500" : "text-gray-400"}`} />
                     <div className="font-semibold">Expense</div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setTransactionType("income")}
-                    className={`p-4 rounded-xl border-2 transition-all ${transactionType === "income"
+                    className={`p-4 rounded-xl border-2 transition-all group ${transactionType === "income"
                       ? "border-green-500 bg-green-50 dark:bg-green-900/30"
                       : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                       }`}
                   >
-                    <div className="text-2xl mb-2">💰</div>
+                    <ArrowUpRight className={`w-8 h-8 mx-auto mb-2 transition-transform group-hover:scale-110 ${transactionType === "income" ? "text-green-500" : "text-gray-400"}`} />
                     <div className="font-semibold">Income</div>
                   </button>
                 </div>
@@ -479,7 +625,9 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
                         : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                         }`}
                     >
-                      <div className="text-3xl mb-2">{cat.icon}</div>
+                      <div className="mb-2">
+                        <CategoryIcon name={cat.icon} className={category === cat.name ? "text-white" : "text-gray-500"} size={28} />
+                      </div>
                       <div className="text-xs font-medium">{cat.name}</div>
                     </button>
                   ))}

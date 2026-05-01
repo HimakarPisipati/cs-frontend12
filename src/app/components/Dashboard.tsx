@@ -5,14 +5,16 @@ import { Badge } from "./ui/badge";
 import {
   LayoutDashboard, Receipt, Wallet, Target, BarChart3, Settings,
   Bell, TrendingUp, TrendingDown, HandCoins, Briefcase,
-  ChevronRight, Menu, X, Smartphone, CreditCard, Banknote, DollarSign, CalendarDays, RepeatIcon, Sparkles
+  ChevronRight, Menu, X, Smartphone, CreditCard, Banknote, DollarSign, CalendarDays, RepeatIcon, Sparkles,
+  User, LogOut
 } from "lucide-react";
 import { getCategoryIcon, getCategoryColor } from "../data/mockData";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // ✅ Import Both Services
-import { getTransactions, getBudgets, getDues, getSalaries, getReminders } from "../../api/services";
+import { getTransactions, getBudgets, getDues, getSalaries, getReminders, getUserProfile } from "../../api/services";
 import { TutorialOverlay } from './TutorialOverlay';
+import { CategoryIcon } from './CategoryIcon';
 
 interface DashboardProps {
   onNavigate: (page: string) => void;
@@ -52,6 +54,28 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
   const [remindersData, setRemindersData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [userName, setUserName] = useState("");
+
+  // ✅ Get user name on mount
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user.name) setUserName(user.name);
+      } catch (e) { console.error("Error parsing user from localStorage", e); }
+    }
+    
+    // Also fetch fresh profile to stay in sync
+    getUserProfile().then(res => {
+      if (res.data?.name) {
+        setUserName(res.data.name);
+        // Sync back to localStorage
+        const existing = JSON.parse(localStorage.getItem("user") || "{}");
+        localStorage.setItem("user", JSON.stringify({ ...existing, ...res.data }));
+      }
+    }).catch(err => console.error("Error fetching user profile", err));
+  }, []);
 
   useEffect(() => {
     const isDemo = localStorage.getItem("isDemo") === "true";
@@ -78,9 +102,12 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
 
           // 2. Fetch Budgets & Calculate Total
           const budgetRes = await getBudgets();
+
           // Safety check: ensure budgetRes.data is an array
           const budgetData = Array.isArray(budgetRes.data) ? budgetRes.data : [];
-          const total = budgetData.reduce((sum: number, b: any) => sum + (Number(b.amount) || Number(b.limit) || 0), 0);
+          
+          const globalBudget = budgetData.find((b: any) => b.category?.toLowerCase() === "general");
+          const total = globalBudget ? (Number(globalBudget.amount) || Number(globalBudget.limit) || 0) : 0;
           setTotalBudget(total);
 
           // 3. Fetch Dues
@@ -222,6 +249,15 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("isDemo");
+    sessionStorage.removeItem("demo_db");
+    sessionStorage.removeItem("tutorial_completed");
+    onNavigate('landing');
+  };
+
   return (
     <div className={`min-h-screen bg-gradient-to-br ${theme.bgGradient} dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 transition-colors duration-300`}>
 
@@ -261,23 +297,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
             })}
           </nav>
 
-          {/* Logout - pinned at bottom */}
-          <div className="p-6 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                localStorage.removeItem("isDemo");
-                sessionStorage.removeItem("demo_db");
-                sessionStorage.removeItem("tutorial_completed");
-                onNavigate('landing');
-              }}
-              className={`w-full ${localStorage.getItem("isDemo") === "true" ? 'border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/30 dark:text-red-400 dark:hover:bg-red-900/20' : 'dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600'}`}
-            >
-              {localStorage.getItem("isDemo") === "true" ? "Exit Demo" : "Logout"}
-            </Button>
-          </div>
+
         </div>
       </aside>
 
@@ -342,26 +362,39 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                   Demo Mode
                 </Badge>
               )}
-              {localStorage.getItem("isDemo") === "true" && (
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => {
-                    localStorage.removeItem("token");
-                    localStorage.removeItem("user");
-                    localStorage.removeItem("isDemo");
-                    sessionStorage.removeItem("demo_db");
-                    sessionStorage.removeItem("tutorial_completed");
-                    onNavigate('landing');
-                  }}
-                  className="border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/30 dark:text-red-400"
-                >
-                  Exit Demo
-                </Button>
-              )}
+
               <Button variant="ghost" size="sm" className="relative dark:text-gray-400 dark:hover:bg-gray-800">
                 <Bell className="w-5 h-5" />
               </Button>
+
+              <div className="relative group">
+                <Button variant="ghost" size="sm" className="w-10 h-10 p-0 rounded-full overflow-hidden border border-gray-200 dark:border-gray-700 dark:hover:bg-gray-800 transition-all">
+                  <div className={`w-full h-full bg-gradient-to-br ${theme.gradient} flex items-center justify-center text-white`}>
+                    <User className="w-5 h-5" />
+                  </div>
+                </Button>
+
+                {/* Dropdown on Hover */}
+                <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                  <div className="w-56 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+                    <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Signed in as</p>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                        {userName || "User"}
+                      </p>
+                    </div>
+                    <div className="p-2">
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>{localStorage.getItem("isDemo") === "true" ? "Exit Demo" : "Logout"}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </header>
@@ -595,7 +628,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
             </div>
 
             {/* ✅ Upcoming Reminders Widget */}
-            <Card id="tutorial-reminders" className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg">
+            <Card id="tutorial-reminders" className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg mb-8">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <CalendarDays className={`w-5 h-5 ${isEmployee ? 'text-blue-500' : 'text-purple-500'}`} />
@@ -671,8 +704,8 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                       className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 ${getCategoryColor(transaction.category)} rounded-xl flex items-center justify-center text-2xl`}>
-                          {getCategoryIcon(transaction.category)}
+                        <div className={`w-12 h-12 ${getCategoryColor(transaction.category)} rounded-xl flex items-center justify-center shadow-inner shrink-0`}>
+                          <CategoryIcon name={getCategoryIcon(transaction.category)} className="text-white" size={24} />
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900 dark:text-white">{transaction.note || transaction.description || "Transaction"}</p>
