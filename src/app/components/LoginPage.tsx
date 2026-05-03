@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
-import { Wallet, Mail, Lock, ArrowLeft, GraduationCap, Briefcase } from "lucide-react";
+import { Wallet, Mail, Lock, ArrowLeft, GraduationCap, Briefcase, Coins, Sparkles, TrendingUp } from "lucide-react";
 import { login } from "../../api/services";
+import { motion, AnimatePresence } from "motion/react";
 
 interface LoginPageProps {
   onNavigate: (page: string) => void;
@@ -45,6 +46,7 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
         email: res.data.email,
         phone: res.data.phone,
         userMode: res.data.userMode || "student",
+        tutorialCompleted: res.data.tutorialCompleted || false,
       }));
 
       const pending = localStorage.getItem("pendingAction");
@@ -62,15 +64,66 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
 
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${isEmp ? 'from-blue-50 via-cyan-50 to-green-50' : 'from-purple-50 via-blue-50 to-green-50'} dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 flex items-center justify-center p-4 transition-colors`}>
-      <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-start">
+    <div className={`min-h-screen relative overflow-hidden bg-gradient-to-br ${isEmp ? 'from-blue-50 via-cyan-50 to-green-50' : 'from-purple-50 via-blue-50 to-green-50'} dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 flex items-start justify-center p-4 pt-20 transition-colors duration-500`}>
+      
+      {/* Back Button - Positioned in the absolute corner */}
+      <div className="absolute top-6 left-6 z-50">
+        <Button 
+          variant="ghost" 
+          onClick={() => onNavigate("landing")} 
+          className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800/50 group transition-all"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
+          Back to Home
+        </Button>
+      </div>
+
+      {/* Background Animated Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ 
+              opacity: [0.05, 0.1, 0.05],
+              scale: [1, 1.2, 1],
+              x: [0, Math.random() * 100 - 50, 0],
+              y: [0, Math.random() * 100 - 50, 0],
+            }}
+            transition={{ 
+              duration: 10 + Math.random() * 10,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="absolute"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+          >
+            {i % 3 === 0 ? <Coins className={`w-32 h-32 ${accentText}`} /> : 
+             i % 3 === 1 ? <Sparkles className={`w-24 h-24 ${accentText}`} /> : 
+             <TrendingUp className={`w-40 h-40 ${accentText}`} />}
+          </motion.div>
+        ))}
+      </div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-6xl grid lg:grid-cols-2 gap-12 lg:items-start relative z-10"
+      >
+
+
         {/* Left Side */}
-        <div className="hidden lg:block">
+        <motion.div 
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="hidden lg:block"
+        >
           <div className="mb-8">
-            <Button variant="ghost" onClick={() => onNavigate("landing")} className="mb-4 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Welcome back to
               <span className={`block bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
@@ -85,117 +138,147 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
             </p>
           </div>
 
-          <img
-            src="https://images.unsplash.com/photo-1633158829556-6ea20ad39b4f"
-            alt={isEmp ? "Professional finance" : "Student budgeting"}
-            className="rounded-3xl shadow-2xl"
-          />
-        </div>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="relative"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1633158829556-6ea20ad39b4f"
+              alt={isEmp ? "Professional finance" : "Student budgeting"}
+              className="rounded-[2.5rem] shadow-2xl border-4 border-white/50 dark:border-gray-700/50"
+            />
+            <div className={`absolute -bottom-6 -right-6 w-32 h-32 bg-gradient-to-br ${gradient} rounded-3xl blur-2xl opacity-40 animate-pulse`}></div>
+          </motion.div>
+        </motion.div>
 
         {/* Login Form */}
-        <Card className="p-8 lg:p-12 bg-white/80 dark:bg-gray-800/90 backdrop-blur-lg border-0 shadow-2xl">
-          <div className="flex items-center gap-3 mb-8">
-            <div className={`w-12 h-12 bg-gradient-to-br ${iconGradient} rounded-xl flex items-center justify-center`}>
-              <Wallet className="w-7 h-7 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Sign in</h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">to continue to {brandName}</p>
-            </div>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-5">
-            {/* Mode Selection */}
-            <div className="space-y-2">
-              <Label className="dark:text-gray-300">Sign in as</Label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setSelectedMode("student")}
-                  className={`p-3 rounded-xl border-2 transition-all flex items-center gap-2 justify-center ${selectedMode === "student"
-                      ? "border-purple-500 bg-purple-50 dark:bg-purple-900/30"
-                      : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                    }`}
-                >
-                  <GraduationCap className={`w-5 h-5 ${selectedMode === "student" ? "text-purple-600 dark:text-purple-400" : "text-gray-400"}`} />
-                  <span className={`text-sm font-semibold ${selectedMode === "student" ? "text-purple-700 dark:text-purple-300" : "text-gray-500 dark:text-gray-400"}`}>Student</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedMode("employee")}
-                  className={`p-3 rounded-xl border-2 transition-all flex items-center gap-2 justify-center ${selectedMode === "employee"
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30"
-                      : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                    }`}
-                >
-                  <Briefcase className={`w-5 h-5 ${selectedMode === "employee" ? "text-blue-600 dark:text-blue-400" : "text-gray-400"}`} />
-                  <span className={`text-sm font-semibold ${selectedMode === "employee" ? "text-blue-700 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"}`}>Employee</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email" className="dark:text-gray-300">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder={isEmp ? "name@company.com" : "student@college.edu"}
-                  className="pl-10 h-12 dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password" className="dark:text-gray-300">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  className="pl-10 h-12 dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => onNavigate("forgot-password")}
-                className={`text-sm ${accentText} ${accentHover} font-medium`}
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+        >
+          <Card className="p-10 lg:p-14 bg-white/70 dark:bg-gray-800/80 backdrop-blur-2xl border border-white/20 dark:border-gray-700/30 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] rounded-[2rem]">
+            <div className="flex items-center gap-4 mb-10">
+              <motion.div 
+                whileHover={{ rotate: 10, scale: 1.1 }}
+                className={`w-14 h-14 bg-gradient-to-br ${iconGradient} rounded-2xl flex items-center justify-center shadow-lg`}
               >
-                Forgot Password?
-              </button>
+                <Wallet className="w-8 h-8 text-white" />
+              </motion.div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Sign in</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">to continue to {brandName}</p>
+              </div>
             </div>
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className={`w-full h-12 bg-gradient-to-r ${gradient} ${gradientHover}`}
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </Button>
-          </form>
+            <form onSubmit={handleLogin} className="space-y-6">
+              {/* Mode Selection */}
+              <div className="space-y-3">
+                <Label className="dark:text-gray-300 font-semibold ml-1">Sign in as</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={() => setSelectedMode("student")}
+                    className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-3 justify-center ${selectedMode === "student"
+                        ? "border-purple-500 bg-purple-50/50 dark:bg-purple-900/30 ring-4 ring-purple-100 dark:ring-purple-900/20"
+                        : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 bg-gray-50/30 dark:bg-gray-800/50"
+                      }`}
+                  >
+                    <GraduationCap className={`w-6 h-6 ${selectedMode === "student" ? "text-purple-600 dark:text-purple-400" : "text-gray-400"}`} />
+                    <span className={`font-bold ${selectedMode === "student" ? "text-purple-700 dark:text-purple-300" : "text-gray-500 dark:text-gray-400"}`}>Student</span>
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={() => setSelectedMode("employee")}
+                    className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-3 justify-center ${selectedMode === "employee"
+                        ? "border-blue-500 bg-blue-50/50 dark:bg-blue-900/30 ring-4 ring-blue-100 dark:ring-blue-900/20"
+                        : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 bg-gray-50/30 dark:bg-gray-800/50"
+                      }`}
+                  >
+                    <Briefcase className={`w-6 h-6 ${selectedMode === "employee" ? "text-blue-600 dark:text-blue-400" : "text-gray-400"}`} />
+                    <span className={`font-bold ${selectedMode === "employee" ? "text-blue-700 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"}`}>Employee</span>
+                  </motion.button>
+                </div>
+              </div>
 
-          <p className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{" "}
-            <button
-              onClick={() => onNavigate("signup")}
-              className={`${accentText} ${accentHover} font-semibold`}
-            >
-              Sign up
-            </button>
-          </p>
-        </Card>
-      </div>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="dark:text-gray-300 font-semibold ml-1">Email</Label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder={isEmp ? "name@company.com" : "student@college.edu"}
+                    className="pl-12 h-14 rounded-2xl dark:bg-gray-700/50 dark:text-white dark:border-gray-600 focus:ring-4 focus:ring-purple-100 dark:focus:ring-purple-900/20 transition-all"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="dark:text-gray-300 font-semibold ml-1">Password</Label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    className="pl-12 h-14 rounded-2xl dark:bg-gray-700/50 dark:text-white dark:border-gray-600 focus:ring-4 focus:ring-purple-100 dark:focus:ring-purple-900/20 transition-all"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => onNavigate("forgot-password")}
+                  className={`text-sm ${accentText} ${accentHover} font-bold hover:underline underline-offset-4`}
+                >
+                  Forgot Password?
+                </button>
+              </div>
+
+              <motion.div
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className={`w-full h-14 rounded-2xl text-lg font-bold shadow-xl bg-gradient-to-r ${gradient} ${gradientHover} transform transition-all active:scale-95 !text-white`}
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Signing in...</span>
+                    </div>
+                  ) : "Sign In"}
+                </Button>
+              </motion.div>
+            </form>
+
+            <p className="mt-10 text-center text-gray-600 dark:text-gray-400 font-medium">
+              Don't have an account?{" "}
+              <button
+                onClick={() => onNavigate("signup")}
+                className={`${accentText} ${accentHover} font-extrabold hover:underline underline-offset-4 ml-1`}
+              >
+                Sign up
+              </button>
+            </p>
+          </Card>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

@@ -5,8 +5,9 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import {
-  User, Bell, Palette, Lock, Download, Trash2, Moon, Sun, X, AlertTriangle, ShieldCheck, KeyRound, Briefcase, GraduationCap, Star, Edit2, MessageSquare, Headphones, FileText, HelpCircle, ChevronRight, Wallet
+  User, Bell, Palette, Lock, Download, Trash2, Moon, Sun, X, AlertTriangle, ShieldCheck, KeyRound, Briefcase, GraduationCap, Star, Edit2, MessageSquare, Headphones, FileText, HelpCircle, ChevronRight, Wallet, Globe
 } from "lucide-react";
+import { COUNTRY_CURRENCY_MAP, CURRENCY_SYMBOLS } from "../../utils/currency";
 
 // ✅ Import updateProfile here
 import { changePassword, deleteAccount, updateProfile, getUserProfile, forgotPassword, resetPassword, switchMode, getReviews, getMyReviews, addReview, updateReview, deleteReview } from "../../api/services";
@@ -34,6 +35,13 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
   // --- PROFILE STATE ---
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [country, setCountry] = useState("India");
+  const [currency, setCurrency] = useState("INR");
+
+  const handleCountryChange = (selectedCountry: string) => {
+    setCountry(selectedCountry);
+    setCurrency(COUNTRY_CURRENCY_MAP[selectedCountry] || "INR");
+  };
 
   // --- MODAL STATES ---
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -82,6 +90,8 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
         // Update State with real database values
         setName(data.name || "");
         setEmail(data.email || "");
+        setCountry(data.country || "India");
+        setCurrency(data.currency || "INR");
         setBudgetModel(data.budgetModel || 'old');
 
         // Sync user mode from backend
@@ -100,6 +110,8 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
           const user = JSON.parse(storedUser);
           setName(user.name || "");
           setEmail(user.email || "");
+          setCountry(user.country || "India");
+          setCurrency(user.currency || "INR");
         }
       }
     };
@@ -184,7 +196,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
       setLoading(true);
 
       // 1. Call API
-      const { data } = await updateProfile({ name, email });
+      const { data } = await updateProfile({ name, email, country, currency });
 
       // 2. Update Local Storage safely
       let storedUser = localStorage.getItem("user");
@@ -195,7 +207,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
       }
 
       const currentUser = JSON.parse(storedUser || "{}");
-      const updatedUser = { ...currentUser, name: data.name };
+      const updatedUser = { ...currentUser, name: data.name, email: data.email, country: data.country, currency: data.currency };
 
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
@@ -366,6 +378,42 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
               className="mt-2 bg-gray-100 dark:bg-gray-600 dark:text-gray-300 "
             />
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="dark:text-gray-300">Country</Label>
+              <div className="relative mt-2">
+                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <select
+                  value={country}
+                  onChange={(e) => handleCountryChange(e.target.value)}
+                  className="w-full pl-10 pr-10 h-10 rounded-md border border-gray-200 bg-white text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all appearance-none cursor-pointer"
+                >
+                  {Object.keys(COUNTRY_CURRENCY_MAP).sort().map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <Label className="dark:text-gray-300">Currency</Label>
+              <div className="relative mt-2">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
+                  {CURRENCY_SYMBOLS[currency] || "₹"}
+                </span>
+                <Input
+                  value={currency}
+                  disabled
+                  className="pl-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 cursor-not-allowed opacity-70"
+                />
+              </div>
+            </div>
+          </div>
+
           <Button
             onClick={handleSaveProfile}
             disabled={loading}

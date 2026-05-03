@@ -109,4 +109,12 @@ export const addReview = (data) => isDemo() ? demoStore.add('reviews', data) : A
 export const updateReview = (id, data) => isDemo() ? demoStore.update('reviews', id, data) : API.put(`/reviews/${id}`, data);
 export const deleteReview = (id) => isDemo() ? demoStore.delete('reviews', id) : API.delete(`/reviews/${id}`);
 
+// ==============================
+// 🔔 NOTIFICATIONS
+// ==============================
+export const getNotifications = () => isDemo() ? Promise.resolve({ data: [] }) : API.get("/notifications");
+export const markNotificationAsRead = (id) => isDemo() ? Promise.resolve() : API.put(`/notifications/${id}/read`);
+export const markAllNotificationsAsRead = () => isDemo() ? Promise.resolve() : API.put("/notifications/read-all");
+
+
 

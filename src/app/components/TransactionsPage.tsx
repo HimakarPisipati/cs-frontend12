@@ -1,3 +1,4 @@
+import { getCurrencySymbol } from "../../utils/currency";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -17,6 +18,7 @@ import {
   ArrowDownRight,
   ArrowUpRight
 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { CategoryIcon } from "./CategoryIcon";
 
 import { categories, getCategoryIcon, getCategoryColor, getCategories } from "../data/mockData";
@@ -166,14 +168,19 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       const pm =
         paymentMethod === "Cash" ? "cash" : paymentMethod === "UPI" ? "upi" : "card";
 
+      console.log("DEBUG: raw amount input:", amount);
+      const numericAmount = Number(amount);
+      console.log("DEBUG: numericAmount:", numericAmount);
+
       const payload = {
         type: transactionType,
-        amount: Number(amount),
+        amount: numericAmount,
         category,
         note: description,
         paymentMethod: pm,
         date: new Date(date).toISOString(),
       };
+      console.log("DEBUG: final payload:", payload);
 
       if (editingTransaction) {
         // UPDATE existing transaction
@@ -209,8 +216,9 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
     try {
       const doc = new jsPDF();
       const now = new Date();
-      const primaryColor = isEmployee ? [59, 130, 246] : [102, 51, 153]; // [R, G, B]
-      const secondaryColor = isEmployee ? [239, 246, 255] : [245, 240, 255];
+      const primaryColor = isEmployee ? [23, 37, 84] : [102, 51, 153]; // Dark Blue for Employee, Purple for Student
+      const accentColor = isEmployee ? [8, 145, 178] : [128, 90, 213]; // Cyan for Employee, Light Purple for Student
+      const secondaryColor = isEmployee ? [240, 247, 255] : [245, 240, 255];
 
       // --- Header Branding ---
       doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -219,11 +227,11 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(24);
       doc.setFont("helvetica", "bold");
-      doc.text("CampusSpend", 14, 25);
+      doc.text(isEmployee ? "CampusSpend Pro" : "CampusSpend", 14, 25);
       
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.text("Professional Expense Management", 14, 32);
+      doc.text(isEmployee ? "Professional Financial Management" : "Student Expense Management", 14, 32);
 
       doc.setFontSize(14);
       doc.text("FINANCIAL STATEMENT", 200, 25, { align: "right" });
@@ -249,7 +257,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       doc.setFontSize(8);
       doc.text("TOTAL INCOME", 18, 68);
       doc.setFontSize(12);
-      doc.text(`INR ${totalIncome.toLocaleString()}`, 18, 78);
+      doc.text(`${getCurrencySymbol()} ${totalIncome.toLocaleString()}`, 18, 78);
 
       // Box 2: Expense
       doc.setFillColor(255, 240, 240); 
@@ -258,12 +266,12 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       doc.setFontSize(8);
       doc.text("TOTAL EXPENSES", 14 + (boxWidth + spacing) + 4, 68);
       doc.setFontSize(12);
-      doc.text(`INR ${totalExpense.toLocaleString()}`, 14 + (boxWidth + spacing) + 4, 78);
+      doc.text(`${getCurrencySymbol()} ${totalExpense.toLocaleString()}`, 14 + (boxWidth + spacing) + 4, 78);
 
       // Box 3: Budget Remaining
       const remaining = globalBudget - totalExpense;
       const budgetBoxColor = globalBudget > 0 ? (remaining >= 0 ? [230, 245, 255] : [255, 230, 230]) : [240, 240, 240];
-      const budgetTextColor = remaining < 0 ? [180, 0, 0] : [0, 80, 150];
+      const budgetTextColor = remaining < 0 ? [180, 0, 0] : (isEmployee ? [8, 145, 178] : [0, 80, 150]);
       
       doc.setFillColor(budgetBoxColor[0], budgetBoxColor[1], budgetBoxColor[2]);
       doc.rect(14 + 2 * (boxWidth + spacing), 60, boxWidth, 25, 'F');
@@ -271,7 +279,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       doc.setFontSize(8);
       doc.text("BUDGET LEFT", 14 + 2 * (boxWidth + spacing) + 4, 68);
       doc.setFontSize(12);
-      doc.text(`INR ${globalBudget > 0 ? remaining.toLocaleString() : 'N/A'}`, 14 + 2 * (boxWidth + spacing) + 4, 78);
+      doc.text(`${getCurrencySymbol()} ${globalBudget > 0 ? remaining.toLocaleString() : 'N/A'}`, 14 + 2 * (boxWidth + spacing) + 4, 78);
 
       // --- User & Filter Details ---
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -285,7 +293,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       doc.text(`Name: ${userData?.name || 'N/A'}`, 14, 107);
       doc.text(`Email: ${userData?.email || 'N/A'}`, 14, 113);
       doc.text(`User ID: ${userData?._id || 'N/A'}`, 14, 119);
-      doc.text(`Account Type: ${userMode.charAt(0).toUpperCase() + userMode.slice(1)} Mode`, 14, 125);
+      doc.text(`Account Type: ${isEmployee ? "Pro Professional" : "Standard Student"}`, 14, 125);
 
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
       doc.setFont("helvetica", "bold");
@@ -304,7 +312,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
         t.category,
         t.note || "-",
         (t.paymentMethod || "cash").toUpperCase(),
-        `INR ${Number(t.amount).toLocaleString()}`,
+        `${getCurrencySymbol()} ${Number(t.amount).toLocaleString()}`,
       ]);
 
       autoTable(doc, {
@@ -337,18 +345,18 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       const finalY = lastTable ? lastTable.finalY : 200;
       const stampY = Math.min(finalY + 20, 260);
       
-      doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setDrawColor(accentColor[0], accentColor[1], accentColor[2]);
       doc.setLineWidth(0.5);
       doc.rect(14, stampY, 80, 15);
       
-      doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+      doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
       doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
-      doc.text("DIGITALLY VERIFIED STATEMENT", 18, stampY + 6);
+      doc.text("DIGITALLY VERIFIED PRO STATEMENT", 18, stampY + 6);
       doc.setFont("helvetica", "italic");
       doc.setFontSize(7);
-      doc.text("This statement is generated digitally and", 18, stampY + 10);
-      doc.text("does not require a physical signature.", 18, stampY + 13);
+      doc.text("This statement is generated digitally by CampusSpend Pro", 18, stampY + 10);
+      doc.text("and does not require a physical signature.", 18, stampY + 13);
 
       // --- Footer ---
       const pageCount = (doc as any).internal.getNumberOfPages();
@@ -363,7 +371,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
         doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
         doc.text(
-          `CampusSpend Finance Report | Page ${i} of ${pageCount} | Generated for ${userData?.name || 'User'}`,
+          `${isEmployee ? "CampusSpend Pro" : "CampusSpend"} Finance Report | Page ${i} of ${pageCount} | Generated for ${userData?.name || 'User'}`,
           105,
           288,
           { align: "center" }
@@ -470,10 +478,14 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
               <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Try adjusting your filters</p>
             </div>
           ) : (
-            filteredTransactions.map((transaction) => (
-              <div
+            filteredTransactions.map((transaction, index) => (
+              <motion.div
                 key={transaction._id}
-                className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-gray-100 dark:border-gray-700"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03 }}
+                whileHover={{ scale: 1.01, backgroundColor: "rgba(0,0,0,0.02)" }}
+                className="flex items-center justify-between p-4 rounded-xl transition-all border border-gray-100 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50"
               >
                 <div className="flex items-center gap-4">
                   <div
@@ -511,7 +523,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
                       className={`text-lg font-semibold ${transaction.type === "expense" ? "text-red-600" : "text-green-600"
                         }`}
                     >
-                      {transaction.type === "expense" ? "-" : "+"}₹
+                      {transaction.type === "expense" ? "-" : "+"}{getCurrencySymbol()}
                       {transaction.amount.toLocaleString()}
                     </div>
                     <Badge
@@ -546,7 +558,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
                     </Button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))
           )}
         </div>
@@ -599,7 +611,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
 
               {/* Amount */}
               <div>
-                <Label htmlFor="amount">Amount (₹)</Label>
+                <Label htmlFor="amount">Amount ({getCurrencySymbol()})</Label>
                 <Input
                   id="amount"
                   type="number"

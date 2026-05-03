@@ -1,3 +1,4 @@
+import { getCurrencySymbol } from "../../utils/currency";
 import { useState, useEffect, useMemo } from "react";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
@@ -152,12 +153,12 @@ export function AnalyticsPage({ userMode = 'student' }: AnalyticsPageProps) {
         <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg dark:border-gray-700">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Top Spending</h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {topCategories[0]?.name || "None"} - ₹{topCategories[0]?.value.toLocaleString() || 0}
+            {topCategories[0]?.name || "None"} - {getCurrencySymbol()}{topCategories[0]?.value.toLocaleString() || 0}
           </p>
         </Card>
         <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg dark:border-gray-700">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Monthly Avg</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">₹{avgSpending.toLocaleString()}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{getCurrencySymbol()}{avgSpending.toLocaleString()}</p>
         </Card>
       </div>
 

@@ -1,3 +1,4 @@
+import { getCurrencySymbol } from "../../utils/currency";
 import { useState, useEffect } from 'react';
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -123,10 +124,10 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
           <div>
             <p className="text-green-100 text-sm mb-2">Total Saved</p>
             <h2 className="text-4xl font-bold">
-              {loading ? "..." : `₹${totalSaved.toLocaleString()}`}
+              {loading ? "..." : `${getCurrencySymbol()}${totalSaved.toLocaleString()}`}
             </h2>
             <p className="text-green-100 text-sm mt-2">
-              of ₹{totalTarget.toLocaleString()} target
+              of {getCurrencySymbol()}{totalTarget.toLocaleString()} target
             </p>
           </div>
           <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
@@ -173,7 +174,7 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white text-lg">{goal.name}</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      ₹{current.toLocaleString()} saved
+                      {getCurrencySymbol()}{current.toLocaleString()} saved
                     </p>
                   </div>
                 </div>
@@ -187,7 +188,7 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">{Math.round(percentage)}% complete</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    Goal: ₹{target.toLocaleString()}
+                    Goal: {getCurrencySymbol()}{target.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -195,7 +196,7 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
               {percentage < 100 ? (
                 <>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                    ₹{remaining.toLocaleString()} more to reach your goal! 🎯
+                    {getCurrencySymbol()}{remaining.toLocaleString()} more to reach your goal! 🎯
                   </p>
                   <Button
                     onClick={() => setShowContributeModal(goal._id || goal.id)}
@@ -253,12 +254,12 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
                     <div className="text-5xl mb-3">{goal.emoji}</div>
                     <h4 className="font-semibold text-lg">{goal.name}</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      Current: ₹{(Number(goal.currentAmount) || 0).toLocaleString()} / ₹{(Number(goal.targetAmount) || 0).toLocaleString()}
+                      Current: {getCurrencySymbol()}{(Number(goal.currentAmount) || 0).toLocaleString()} / {getCurrencySymbol()}{(Number(goal.targetAmount) || 0).toLocaleString()}
                     </p>
                   </div>
 
                   <div>
-                    <Label htmlFor="amount" className="dark:text-gray-300">Amount to Add (₹)</Label>
+                    <Label htmlFor="amount" className="dark:text-gray-300">Amount to Add ({getCurrencySymbol()})</Label>
                     <div className="relative mt-2">
                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <Input
@@ -316,7 +317,7 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
                 />
               </div>
               <div>
-                <Label className="dark:text-gray-300">Target Amount (₹)</Label>
+                <Label className="dark:text-gray-300">Target Amount ({getCurrencySymbol()})</Label>
                 <Input
                   type="number"
                   placeholder="0"

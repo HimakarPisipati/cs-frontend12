@@ -11,13 +11,20 @@ export default function AddExpense() {
     e.preventDefault();
 
     try {
-      const res = await addTransaction({
+      console.log("DEBUG ADDEXPENSE: raw amount input:", amount);
+      const numericAmount = Number(amount);
+      console.log("DEBUG ADDEXPENSE: numericAmount:", numericAmount);
+
+      const payload = {
         type: "expense",
-        amount: Number(amount),
+        amount: numericAmount,
         category,
         note,
         paymentMethod
-      });
+      };
+      console.log("DEBUG ADDEXPENSE: final payload:", payload);
+
+      const res = await addTransaction(payload);
 
       alert("Expense Added ✅");
       console.log(res.data);

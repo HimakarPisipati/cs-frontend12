@@ -1,3 +1,4 @@
+import { getCurrencySymbol } from "../../utils/currency";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -174,8 +175,8 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
 
     const handleSettle = async (d: Due) => {
         const confirmMsg = isEmployee
-            ? `Mark ₹${d.amount} EMI for "${d.personName}" as paid?`
-            : `Mark ₹${d.amount} from ${d.personName} as settled?`;
+            ? `Mark ${getCurrencySymbol()}${d.amount} EMI for "${d.personName}" as paid?`
+            : `Mark ${getCurrencySymbol()}${d.amount} from ${d.personName} as settled?`;
         if (!window.confirm(confirmMsg)) return;
         try {
             await updateDue(d._id, { settled: true });
@@ -248,7 +249,7 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
                 <p className="text-sm font-medium opacity-90 uppercase tracking-wider">
                     {activeTab === "pending" ? labels.summaryPending : labels.summaryDebt}
                 </p>
-                <p className="text-4xl font-bold mt-2">₹{totalAmount.toLocaleString()}</p>
+                <p className="text-4xl font-bold mt-2">{getCurrencySymbol()}{totalAmount.toLocaleString()}</p>
                 <p className="text-sm opacity-75 mt-1">{filteredDues.length} active entries</p>
             </Card>
 
@@ -313,7 +314,7 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
 
                                 <div className="flex items-center gap-3 ml-4">
                                     <span className={`text-xl font-bold ${activeTab === "pending" ? labels.amountColorPending : labels.amountColorDebt}`}>
-                                        ₹{Number(d.amount).toLocaleString()}
+                                        {getCurrencySymbol()}{Number(d.amount).toLocaleString()}
                                     </span>
 
                                     <Button variant="ghost" size="icon" className="text-gray-400 hover:text-blue-600" onClick={() => handleEdit(d)}>
@@ -357,7 +358,7 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-gray-500 line-through">₹{Number(d.amount).toLocaleString()}</span>
+                                        <span className="text-gray-500 line-through">{getCurrencySymbol()}{Number(d.amount).toLocaleString()}</span>
                                         <Button variant="ghost" size="icon" className="text-gray-400 hover:text-red-600" onClick={() => handleDelete(d._id)}>
                                             <Trash2 className="w-4 h-4" />
                                         </Button>
@@ -408,7 +409,7 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
                                 />
                             </div>
                             <div>
-                                <Label className="dark:text-gray-300">{isEmployee ? "EMI Amount (₹)" : "Amount (₹)"}</Label>
+                                <Label className="dark:text-gray-300">{isEmployee ? "EMI Amount ({getCurrencySymbol()})" : "Amount ({getCurrencySymbol()})"}</Label>
                                 <Input
                                     type="number"
                                     placeholder="0"

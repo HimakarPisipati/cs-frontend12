@@ -1,3 +1,4 @@
+import { getCurrencySymbol } from "../../utils/currency";
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -7,6 +8,7 @@ import { Label } from "./ui/label";
 import {
   Plus, Wallet, AlertCircle, Pencil, Trash2, X, Save, PieChart, LayoutDashboard, ArrowRight, Info
 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 // ✅ Import API services
 import { getBudgets, addBudget, updateBudget, deleteBudget, getTransactions, getUserProfile } from "../../api/services";
@@ -91,7 +93,7 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
 
       if (budgetModel === 'new' && category !== "General" && !editingId) {
         if (Number(limit) > unallocatedLimit) {
-          return alert(`You only have ₹${unallocatedLimit.toLocaleString()} left in your unallocated pool.`);
+          return alert(`You only have ${getCurrencySymbol()}${unallocatedLimit.toLocaleString()} left in your unallocated pool.`);
         }
       }
 
@@ -186,28 +188,34 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
         <div className="space-y-6">
           {/* Unallocated / Pool Status */}
           <div className="grid md:grid-cols-3 gap-6">
-            <Card className={`p-6 bg-white dark:bg-gray-800 border-0 shadow-lg`}>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Unallocated Pool</p>
-              <h4 className={`text-2xl font-bold ${unallocatedLimit > 0 ? accentText : 'text-orange-500'}`}>₹{unallocatedLimit.toLocaleString()}</h4>
-              <p className="text-xs text-gray-400 mt-2">Available to split into categories</p>
-            </Card>
+            <motion.div whileHover={{ y: -5 }} className="h-full">
+              <Card className={`p-6 bg-white dark:bg-gray-800 border-0 shadow-lg h-full`}>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Unallocated Pool</p>
+                <h4 className={`text-2xl font-bold ${unallocatedLimit > 0 ? accentText : 'text-orange-500'}`}>{getCurrencySymbol()}{unallocatedLimit.toLocaleString()}</h4>
+                <p className="text-xs text-gray-400 mt-2">Available to split into categories</p>
+              </Card>
+            </motion.div>
             
-            <Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Allocated to Categories</p>
-              <h4 className="text-2xl font-bold text-gray-900 dark:text-white">₹{totalAllocated.toLocaleString()}</h4>
-              <div className="mt-2 h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full bg-gradient-to-r ${gradient}`} 
-                  style={{ width: `${Math.min((totalAllocated / globalLimit) * 100, 100)}%` }}
-                />
-              </div>
-            </Card>
-
-            <Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-lg">
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Spending</p>
-              <h4 className={`text-2xl font-bold ${totalSpent > globalLimit ? 'text-red-500' : 'text-green-500'}`}>₹{totalSpent.toLocaleString()}</h4>
-              <p className="text-xs text-gray-400 mt-2">Out of ₹{globalLimit.toLocaleString()} total pool</p>
-            </Card>
+            <motion.div whileHover={{ y: -5 }} className="h-full">
+              <Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-lg h-full">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Allocated to Categories</p>
+                <h4 className="text-2xl font-bold text-gray-900 dark:text-white">{getCurrencySymbol()}{totalAllocated.toLocaleString()}</h4>
+                <div className="mt-2 h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full bg-gradient-to-r ${gradient}`} 
+                    style={{ width: `${Math.min((totalAllocated / globalLimit) * 100, 100)}%` }}
+                  />
+                </div>
+              </Card>
+            </motion.div>
+ 
+            <motion.div whileHover={{ y: -5 }} className="h-full">
+              <Card className="p-6 bg-white dark:bg-gray-800 border-0 shadow-lg h-full">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Spending</p>
+                <h4 className={`text-2xl font-bold ${totalSpent > globalLimit ? 'text-red-500' : 'text-green-500'}`}>{getCurrencySymbol()}{totalSpent.toLocaleString()}</h4>
+                <p className="text-xs text-gray-400 mt-2">Out of {getCurrencySymbol()}{globalLimit.toLocaleString()} total pool</p>
+              </Card>
+            </motion.div>
           </div>
 
           <div className="flex items-center justify-between">
@@ -260,8 +268,8 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
               </div>
               <div className="mt-4">
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-500">Spent: ₹{getCategorySpending("General").toLocaleString()}</span>
-                  <span className="font-semibold">Pool: ₹{unallocatedLimit.toLocaleString()}</span>
+                  <span className="text-gray-500">Spent: {getCurrencySymbol()}{getCategorySpending("General").toLocaleString()}</span>
+                  <span className="font-semibold">Pool: {getCurrencySymbol()}{unallocatedLimit.toLocaleString()}</span>
                 </div>
                 <Progress 
                   value={unallocatedLimit > 0 ? Math.min((getCategorySpending("General") / unallocatedLimit) * 100, 100) : 0} 
@@ -271,32 +279,40 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
             </Card>
 
             {/* Split Category Cards */}
-            {budgets.filter(b => b.category?.toLowerCase() !== "general").map((budget) => {
+            {budgets.filter(b => b.category?.toLowerCase() !== "general").map((budget, index) => {
               const spent = getCategorySpending(budget.category);
               const limit = Number(budget.amount) || 0;
               const percentage = Math.min((spent / limit) * 100, 100);
               
               return (
-                <Card key={budget._id} className="p-6 border-0 shadow-lg bg-white dark:bg-gray-800 relative group">
-                  <div className="flex justify-between items-start mb-4">
-                    <h4 className="font-bold text-gray-900 dark:text-white">{budget.category}</h4>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => openEdit(budget)} className="p-1 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded">
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => handleDelete(budget._id)} className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                <motion.div
+                  key={budget._id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.03, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+                >
+                  <Card className="p-6 border-0 shadow-lg bg-white dark:bg-gray-800 relative group h-full">
+                    <div className="flex justify-between items-start mb-4">
+                      <h4 className="font-bold text-gray-900 dark:text-white">{budget.category}</h4>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => openEdit(budget)} className="p-1 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded">
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(budget._id)} className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-gray-500">₹{spent.toLocaleString()} / ₹{limit.toLocaleString()}</span>
-                      <span className="font-medium">{Math.round(percentage)}%</span>
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-500">{getCurrencySymbol()}{spent.toLocaleString()} / {getCurrencySymbol()}{limit.toLocaleString()}</span>
+                        <span className="font-medium">{Math.round(percentage)}%</span>
+                      </div>
+                      <Progress value={percentage} className="h-1.5" />
                     </div>
-                    <Progress value={percentage} className="h-1.5" />
-                  </div>
-                </Card>
+                  </Card>
+                </motion.div>
               );
             })}
           </div>
@@ -316,7 +332,7 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
               <h2 className="text-3xl font-bold">Budgets</h2>
             </div>
             <p className={`${accentLight} mt-1`}>
-              Total Spending: ₹{totalSpent.toLocaleString()} / ₹{totalBudgetLimit.toLocaleString()}
+              Total Spending: {getCurrencySymbol()}{totalSpent.toLocaleString()} / {getCurrencySymbol()}{totalBudgetLimit.toLocaleString()}
             </p>
           </div>
             <Button
@@ -398,7 +414,7 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
               
               <div>
                 <Label className="dark:text-gray-300 font-semibold mb-2 block">
-                  {category.toLowerCase() === "general" ? "Total Monthly Amount" : "Split Amount"} (₹)
+                  {category.toLowerCase() === "general" ? "Total Monthly Amount" : "Split Amount"} ({getCurrencySymbol()})
                 </Label>
                 <div className="relative">
                   <Input
@@ -413,7 +429,7 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
                 {budgetModel === 'new' && category !== "General" && unallocatedLimit > 0 && (
                   <p className="text-[10px] text-gray-500 mt-1.5 flex items-center gap-1">
                     <Info className="w-3 h-3" />
-                    Max available from pool: ₹{unallocatedLimit.toLocaleString()}
+                    Max available from pool: {getCurrencySymbol()}{unallocatedLimit.toLocaleString()}
                   </p>
                 )}
               </div>

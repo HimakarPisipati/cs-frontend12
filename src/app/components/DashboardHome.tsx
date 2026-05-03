@@ -1,3 +1,4 @@
+import { getCurrencySymbol } from "../../utils/currency";
 export function DashboardHome() {
   return (
     <div className="p-6 space-y-4">
@@ -13,17 +14,17 @@ export function DashboardHome() {
       <div className="grid md:grid-cols-3 gap-6">
         <div className="p-6 bg-white rounded-xl shadow">
           <p className="text-sm text-gray-500">Total Income</p>
-          <p className="text-2xl font-bold text-green-600">₹0</p>
+          <p className="text-2xl font-bold text-green-600">{getCurrencySymbol()}0</p>
         </div>
 
         <div className="p-6 bg-white rounded-xl shadow">
           <p className="text-sm text-gray-500">Total Expenses</p>
-          <p className="text-2xl font-bold text-red-600">₹0</p>
+          <p className="text-2xl font-bold text-red-600">{getCurrencySymbol()}0</p>
         </div>
 
         <div className="p-6 bg-white rounded-xl shadow">
           <p className="text-sm text-gray-500">Balance</p>
-          <p className="text-2xl font-bold text-blue-600">₹0</p>
+          <p className="text-2xl font-bold text-blue-600">{getCurrencySymbol()}0</p>
         </div>
       </div>
     </div>

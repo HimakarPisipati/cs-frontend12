@@ -1,3 +1,4 @@
+import { getCurrencySymbol } from "../../utils/currency";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -157,7 +158,7 @@ export function SalaryPage() {
                         <div className="flex items-start justify-between mb-3">
                             <div>
                                 <p className="text-blue-100 text-sm">Gross Salary</p>
-                                <h3 className="text-2xl font-bold mt-1">₹{latestEntry.grossSalary.toLocaleString()}</h3>
+                                <h3 className="text-2xl font-bold mt-1">{getCurrencySymbol()}{latestEntry.grossSalary.toLocaleString()}</h3>
                             </div>
                             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                                 <DollarSign className="w-5 h-5" />
@@ -170,7 +171,7 @@ export function SalaryPage() {
                         <div className="flex items-start justify-between mb-3">
                             <div>
                                 <p className="text-red-100 text-sm">Total Deductions</p>
-                                <h3 className="text-2xl font-bold mt-1">₹{totalDeductions.toLocaleString()}</h3>
+                                <h3 className="text-2xl font-bold mt-1">{getCurrencySymbol()}{totalDeductions.toLocaleString()}</h3>
                             </div>
                             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                                 <TrendingDown className="w-5 h-5" />
@@ -183,7 +184,7 @@ export function SalaryPage() {
                         <div className="flex items-start justify-between mb-3">
                             <div>
                                 <p className="text-green-100 text-sm">Net Salary</p>
-                                <h3 className="text-2xl font-bold mt-1">₹{latestEntry.netSalary.toLocaleString()}</h3>
+                                <h3 className="text-2xl font-bold mt-1">{getCurrencySymbol()}{latestEntry.netSalary.toLocaleString()}</h3>
                             </div>
                             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                                 <TrendingUp className="w-5 h-5" />
@@ -221,17 +222,17 @@ export function SalaryPage() {
                                     <div>
                                         <p className="font-semibold text-gray-900 dark:text-white">{formatMonth(entry.month)}</p>
                                         <div className="flex flex-wrap gap-2 mt-1">
-                                            <Badge variant="outline" className="text-xs dark:border-gray-600 dark:text-gray-300">PF: ₹{entry.pf.toLocaleString()}</Badge>
-                                            <Badge variant="outline" className="text-xs dark:border-gray-600 dark:text-gray-300">Tax: ₹{entry.tax.toLocaleString()}</Badge>
-                                            <Badge variant="outline" className="text-xs dark:border-gray-600 dark:text-gray-300">Ins: ₹{entry.insurance.toLocaleString()}</Badge>
+                                            <Badge variant="outline" className="text-xs dark:border-gray-600 dark:text-gray-300">PF: {getCurrencySymbol()}{entry.pf.toLocaleString()}</Badge>
+                                            <Badge variant="outline" className="text-xs dark:border-gray-600 dark:text-gray-300">Tax: {getCurrencySymbol()}{entry.tax.toLocaleString()}</Badge>
+                                            <Badge variant="outline" className="text-xs dark:border-gray-600 dark:text-gray-300">Ins: {getCurrencySymbol()}{entry.insurance.toLocaleString()}</Badge>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-3">
                                     <div className="text-right">
-                                        <p className="text-lg font-bold text-green-600 dark:text-green-400">₹{entry.netSalary.toLocaleString()}</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">of ₹{entry.grossSalary.toLocaleString()}</p>
+                                        <p className="text-lg font-bold text-green-600 dark:text-green-400">{getCurrencySymbol()}{entry.netSalary.toLocaleString()}</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">of {getCurrencySymbol()}{entry.grossSalary.toLocaleString()}</p>
                                     </div>
                                     <div className="flex gap-1">
                                         <Button variant="ghost" size="icon" className="text-gray-400 hover:text-blue-600" onClick={() => handleEdit(entry)}>
@@ -277,7 +278,7 @@ export function SalaryPage() {
                             </div>
 
                             <div>
-                                <Label htmlFor="grossSalary" className="dark:text-gray-300">Gross Salary (₹)</Label>
+                                <Label htmlFor="grossSalary" className="dark:text-gray-300">Gross Salary ({getCurrencySymbol()})</Label>
                                 <Input
                                     id="grossSalary"
                                     type="number"
@@ -291,22 +292,22 @@ export function SalaryPage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="pf" className="dark:text-gray-300">Provident Fund (₹)</Label>
+                                    <Label htmlFor="pf" className="dark:text-gray-300">Provident Fund ({getCurrencySymbol()})</Label>
                                     <Input id="pf" type="number" placeholder="0" value={pf} onChange={(e) => setPf(e.target.value)} className="mt-2 dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                                 </div>
                                 <div>
-                                    <Label htmlFor="tax" className="dark:text-gray-300">Income Tax / TDS (₹)</Label>
+                                    <Label htmlFor="tax" className="dark:text-gray-300">Income Tax / TDS ({getCurrencySymbol()})</Label>
                                     <Input id="tax" type="number" placeholder="0" value={tax} onChange={(e) => setTax(e.target.value)} className="mt-2 dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="insurance" className="dark:text-gray-300">Insurance (₹)</Label>
+                                    <Label htmlFor="insurance" className="dark:text-gray-300">Insurance ({getCurrencySymbol()})</Label>
                                     <Input id="insurance" type="number" placeholder="0" value={insurance} onChange={(e) => setInsurance(e.target.value)} className="mt-2 dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                                 </div>
                                 <div>
-                                    <Label htmlFor="otherDeductions" className="dark:text-gray-300">Other Deductions (₹)</Label>
+                                    <Label htmlFor="otherDeductions" className="dark:text-gray-300">Other Deductions ({getCurrencySymbol()})</Label>
                                     <Input id="otherDeductions" type="number" placeholder="0" value={otherDeductions} onChange={(e) => setOtherDeductions(e.target.value)} className="mt-2 dark:bg-gray-700 dark:text-white dark:border-gray-600" />
                                 </div>
                             </div>
@@ -316,7 +317,7 @@ export function SalaryPage() {
                                 <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800">
                                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Estimated Net Salary</p>
                                     <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                        ₹{(Number(grossSalary) - (Number(pf) || 0) - (Number(tax) || 0) - (Number(insurance) || 0) - (Number(otherDeductions) || 0)).toLocaleString()}
+                                        {getCurrencySymbol()}{(Number(grossSalary) - (Number(pf) || 0) - (Number(tax) || 0) - (Number(insurance) || 0) - (Number(otherDeductions) || 0)).toLocaleString()}
                                     </p>
                                 </div>
                             )}

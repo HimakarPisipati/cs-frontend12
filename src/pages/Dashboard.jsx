@@ -1,3 +1,4 @@
+import { getCurrencySymbol } from "../utils/currency";
 import { useEffect, useState } from "react";
 import { getTransactions } from "../api/services";
 
@@ -41,7 +42,7 @@ export default function Dashboard() {
                 borderRadius: 8
               }}
             >
-              <b>{t.category}</b> — ₹{t.amount} ({t.type})
+              <b>{t.category}</b> — {getCurrencySymbol()}{t.amount} ({t.type})
               <br />
               <small>{new Date(t.date).toLocaleString()}</small>
               <br />

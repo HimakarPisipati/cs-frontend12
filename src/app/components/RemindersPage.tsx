@@ -1,3 +1,4 @@
+import { getCurrencySymbol } from "../../utils/currency";
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -308,7 +309,7 @@ export function RemindersPage({ userMode = 'student' }: { userMode?: string }) {
   }
 
   async function handleMarkPaid(r: Reminder) {
-    if (!window.confirm(`Mark "${r.title}" as paid?\nThis will also record ₹${r.amount} as an expense transaction.`)) return;
+    if (!window.confirm(`Mark "${r.title}" as paid?\nThis will also record ${getCurrencySymbol()}${r.amount} as an expense transaction.`)) return;
     try {
       // Mark reminder as paid
       await updateReminder(r._id, { isPaid: true });
@@ -537,7 +538,7 @@ export function RemindersPage({ userMode = 'student' }: { userMode?: string }) {
 
                       {/* Amount */}
                       <p className={`text-2xl font-bold ${overdue ? "text-red-500" : r.isPaid ? "line-through opacity-40" : theme.amountColor}`}>
-                        ₹{Number(r.amount).toLocaleString()}
+                        {getCurrencySymbol()}{Number(r.amount).toLocaleString()}
                       </p>
 
                       {/* Meta */}
