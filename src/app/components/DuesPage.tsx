@@ -6,6 +6,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { X, Plus, Pencil, Check, Trash2, CreditCard, Wallet as WalletIcon, Smartphone, Home, Car, GraduationCap, Landmark, HandCoins } from "lucide-react";
 import { getDues, addDue, updateDue, deleteDue } from "../../api/services";
+import { CustomModal } from "./ui/CustomModal";
 
 type Due = {
     _id: string;
@@ -29,6 +30,32 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
     const [activeTab, setActiveTab] = useState<"pending" | "debt">("pending");
     const [showModal, setShowModal] = useState(false);
     const [editingDue, setEditingDue] = useState<Due | null>(null);
+
+    // ✅ Modal State
+    const [modalConfig, setModalConfig] = useState<{
+        title: string;
+        description: string;
+        type: "success" | "error" | "warning" | "info" | "question";
+        onConfirm?: () => void;
+        showConfirm?: boolean;
+        confirmText?: string;
+    }>({
+        title: "",
+        description: "",
+        type: "info",
+        showConfirm: true,
+    });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const showAlert = (title: string, description: string, type: any = "success") => {
+        setModalConfig({ title, description, type, showConfirm: false });
+        setIsModalOpen(true);
+    };
+
+    const showConfirmation = (title: string, description: string, onConfirm: () => void, type: any = "warning", confirmText: string = "Confirm") => {
+        setModalConfig({ title, description, type, onConfirm, showConfirm: true, confirmText });
+        setIsModalOpen(true);
+    };
 
     // Form state
     const [personName, setPersonName] = useState("");
@@ -103,7 +130,7 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
             setDues(Array.isArray(res.data) ? res.data : []);
         } catch (err: any) {
             console.error(err);
-            alert(err?.response?.data?.message || "Failed to load entries ❌");
+            showAlert("Error", err?.response?.data?.message || "Failed to load entries ❌", "error");
             setDues([]);
         } finally {
             setLoading(false);
@@ -149,17 +176,17 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
 
             if (editingDue) {
                 await updateDue(editingDue._id, payload);
-                alert("Updated ✅");
+                showAlert("Updated!", "Entry updated successfully ✅", "success");
             } else {
                 await addDue(payload);
-                alert("Added ✅");
+                showAlert("Added!", "New entry added successfully ✅", "success");
             }
 
             setShowModal(false);
             resetForm();
             await loadDues();
         } catch (err: any) {
-            alert(err?.response?.data?.message || "Failed to save ❌");
+            showAlert("Error", err?.response?.data?.message || "Failed to save ❌", "error");
         }
     };
 
@@ -173,28 +200,44 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
         setShowModal(true);
     };
 
-    const handleSettle = async (d: Due) => {
+    const handleSettle = (d: Due) => {
         const confirmMsg = isEmployee
             ? `Mark ${getCurrencySymbol()}${d.amount} EMI for "${d.personName}" as paid?`
             : `Mark ${getCurrencySymbol()}${d.amount} from ${d.personName} as settled?`;
-        if (!window.confirm(confirmMsg)) return;
-        try {
-            await updateDue(d._id, { settled: true });
-            await loadDues();
-        } catch (err: any) {
-            alert(err?.response?.data?.message || "Failed to update ❌");
-        }
+        
+        showConfirmation(
+            "Confirm Settlement",
+            confirmMsg,
+            async () => {
+                try {
+                    await updateDue(d._id, { settled: true });
+                    showAlert("Settled!", "Entry marked as settled ✅", "success");
+                    await loadDues();
+                } catch (err: any) {
+                    showAlert("Error", err?.response?.data?.message || "Failed to update ❌", "error");
+                }
+            },
+            "question",
+            "Settle"
+        );
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm("Delete this entry?")) return;
-        try {
-            setDues((prev) => prev.filter((d) => d._id !== id));
-            await deleteDue(id);
-        } catch (err: any) {
-            alert(err?.response?.data?.message || "Failed to delete ❌");
-            loadDues();
-        }
+    const handleDelete = (id: string) => {
+        showConfirmation(
+            "Delete Entry?",
+            "Are you sure you want to delete this entry? This action cannot be undone.",
+            async () => {
+                try {
+                    setDues((prev) => prev.filter((d) => d._id !== id));
+                    await deleteDue(id);
+                } catch (err: any) {
+                    showAlert("Error", err?.response?.data?.message || "Failed to delete ❌", "error");
+                    loadDues();
+                }
+            },
+            "error",
+            "Delete"
+        );
     };
 
     // EMI loan type icons for employee mode
@@ -409,7 +452,7 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
                                 />
                             </div>
                             <div>
-                                <Label className="dark:text-gray-300">{isEmployee ? "EMI Amount ({getCurrencySymbol()})" : "Amount ({getCurrencySymbol()})"}</Label>
+                                <Label className="dark:text-gray-300">{isEmployee ? "EMI Amount" : "Amount"} ({getCurrencySymbol()})</Label>
                                 <Input
                                     type="number"
                                     placeholder="0"
@@ -483,6 +526,18 @@ export function DuesPage({ userMode = 'student' }: DuesPageProps) {
                     </Card>
                 </div>
             )}
+
+            {/* ✅ Premium Modal */}
+            <CustomModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={modalConfig.onConfirm}
+                title={modalConfig.title}
+                description={modalConfig.description}
+                type={modalConfig.type}
+                showConfirm={modalConfig.showConfirm}
+                confirmText={modalConfig.confirmText}
+            />
         </div>
     );
 }

@@ -60,6 +60,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
   const [loading, setLoading] = useState(true);
   const [showTutorial, setShowTutorial] = useState(false);
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -71,13 +72,15 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
       try {
         const user = JSON.parse(userStr);
         if (user.name) setUserName(user.name);
+        if (user.email) setUserEmail(user.email);
       } catch (e) { console.error("Error parsing user from localStorage", e); }
     }
     
     // Also fetch fresh profile to stay in sync
     getUserProfile().then(res => {
-      if (res.data?.name) {
-        setUserName(res.data.name);
+      if (res.data) {
+        if (res.data.name) setUserName(res.data.name);
+        if (res.data.email) setUserEmail(res.data.email);
         // Sync back to localStorage
         const existing = JSON.parse(localStorage.getItem("user") || "{}");
         localStorage.setItem("user", JSON.stringify({ ...existing, ...res.data }));
@@ -554,22 +557,50 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                   </Button>
                 </motion.div>
 
-                {/* Dropdown on Hover */}
+                {/* Profile Dropdown on Hover */}
                 <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                  <div className="w-56 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-                    <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Signed in as</p>
-                      <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                        {userName || "User"}
-                      </p>
+                  <div className="w-64 bg-white dark:bg-gray-800 rounded-[1.5rem] shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden transform origin-top-right">
+                    {/* Header with User Info */}
+                    <div className="p-4 bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${theme.gradient} flex items-center justify-center text-white text-lg font-bold shadow-md`}>
+                          {userName ? userName.charAt(0).toUpperCase() : <User className="w-5 h-5" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                            {userName || "User"}
+                          </p>
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+                            {userEmail || "Not signed in"}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <Badge className={`rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-wider border-0 text-white bg-gradient-to-r ${theme.gradient} shadow-sm`}>
+                        {isEmployee ? "Employee" : "Student"}
+                      </Badge>
                     </div>
+
+                    {/* Actions */}
                     <div className="p-2">
                       <button 
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors"
+                        onClick={() => onNavigate('settings')}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-xl transition-all group/item"
                       >
-                        <LogOut className="w-4 h-4" />
-                        <span>{localStorage.getItem("isDemo") === "true" ? "Exit Demo" : "Logout"}</span>
+                        <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center group-hover/item:bg-white dark:group-hover/item:bg-gray-600 transition-colors">
+                          <Settings className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                        </div>
+                        <span>Account Settings</span>
+                      </button>
+
+                      <button 
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all group/logout"
+                      >
+                        <div className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-900/30 flex items-center justify-center group-hover/logout:bg-white dark:group-hover/logout:bg-red-800 transition-colors">
+                          <LogOut className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
+                        </div>
+                        <span>{localStorage.getItem("isDemo") === "true" ? "Exit" : "Logout"}</span>
                       </button>
                     </div>
                   </div>
@@ -588,9 +619,9 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                 <Card className={`p-6 bg-gradient-to-br ${theme.gradient} text-white border-0 shadow-xl h-full`}>
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <p className="text-white/70 text-sm">Current Balance</p>
+                      <p className="text-white/70 text-sm">{isEmployee ? "Current Balance" : "Available Funds"}</p>
                       <h2 className="text-3xl font-bold mt-2">
-                        {loading ? "..." : `${getCurrencySymbol()}${balance.toLocaleString()}`}
+                        {loading ? "..." : `${getCurrencySymbol()}${(isEmployee ? balance : budgetRemaining).toLocaleString()}`}
                       </h2>
                     </div>
                     <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
@@ -599,7 +630,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <TrendingUp className="w-4 h-4" />
-                    <span>Available Funds</span>
+                    <span>{isEmployee ? "Available Funds" : "Based on your monthly budget"}</span>
                   </div>
                 </Card>
               </motion.div>
@@ -627,9 +658,9 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                 <Card className="p-6 bg-gradient-to-br from-green-500 to-teal-500 text-white border-0 shadow-xl h-full">
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <p className="text-green-100 text-sm">Budget Remaining</p>
+                      <p className="text-green-100 text-sm">{isEmployee ? "Budget Remaining" : "Monthly Budget"}</p>
                       <h2 className="text-3xl font-bold mt-2">
-                        {loading ? "..." : `${getCurrencySymbol()}${budgetRemaining.toLocaleString()}`}
+                        {loading ? "..." : `${getCurrencySymbol()}${(isEmployee ? budgetRemaining : totalBudget).toLocaleString()}`}
                       </h2>
                     </div>
                     <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">

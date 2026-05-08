@@ -8,9 +8,10 @@ import {
   User, Bell, Palette, Lock, Download, Trash2, Moon, Sun, X, AlertTriangle, ShieldCheck, KeyRound, Briefcase, GraduationCap, Star, Edit2, MessageSquare, Headphones, FileText, HelpCircle, ChevronRight, Wallet, Globe
 } from "lucide-react";
 import { COUNTRY_CURRENCY_MAP, CURRENCY_SYMBOLS } from "../../utils/currency";
+import { CustomModal } from "./ui/CustomModal";
 
 // ✅ Import updateProfile here
-import { changePassword, deleteAccount, updateProfile, getUserProfile, forgotPassword, resetPassword, switchMode, getReviews, getMyReviews, addReview, updateReview, deleteReview } from "../../api/services";
+import { changePassword, deleteAccount, updateProfile, getUserProfile, forgotPassword, resetPassword, switchMode, getReviews, getMyReviews, addReview, updateReview, deleteReview, requestEmailChange, verifyEmailChange } from "../../api/services";
 import { Textarea } from "./ui/textarea";
 
 
@@ -60,6 +61,32 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
   const [switchLoading, setSwitchLoading] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // ✅ Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    title: string;
+    description: string;
+    type: "success" | "error" | "warning" | "info" | "question";
+    onConfirm?: () => void;
+    showConfirm?: boolean;
+    confirmText?: string;
+  }>({
+    title: "",
+    description: "",
+    type: "info",
+    showConfirm: true,
+  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showAlert = (title: string, description: string, type: any = "success") => {
+    setModalConfig({ title, description, type, showConfirm: false });
+    setIsModalOpen(true);
+  };
+
+  const showConfirmation = (title: string, description: string, onConfirm: () => void, type: any = "warning", confirmText: string = "Confirm") => {
+    setModalConfig({ title, description, type, onConfirm, showConfirm: true, confirmText });
+    setIsModalOpen(true);
+  };
+
   // --- FORGOT PASSWORD (OTP) STATE ---
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotStep, setForgotStep] = useState<"otp" | "newPassword" | "success">("otp");
@@ -77,6 +104,12 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
   const [comment, setComment] = useState("");
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  
+  // --- EMAIL CHANGE OTP STATE ---
+  const [showEmailOtpModal, setShowEmailOtpModal] = useState(false);
+  const [emailOtp, setEmailOtp] = useState(["", "", "", "", "", ""]);
+  const [originalEmail, setOriginalEmail] = useState("");
+  const emailOtpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
@@ -90,6 +123,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
         // Update State with real database values
         setName(data.name || "");
         setEmail(data.email || "");
+        setOriginalEmail(data.email || "");
         setCountry(data.country || "India");
         setCurrency(data.currency || "INR");
         setBudgetModel(data.budgetModel || 'old');
@@ -110,6 +144,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
           const user = JSON.parse(storedUser);
           setName(user.name || "");
           setEmail(user.email || "");
+          setOriginalEmail(user.email || "");
           setCountry(user.country || "India");
           setCurrency(user.currency || "INR");
         }
@@ -143,17 +178,17 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
     try {
       if (editingReviewId) {
         await updateReview(editingReviewId, { rating, comment });
-        alert("Review updated! ✅");
+        showAlert("Updated!", "Review updated successfully! ✅", "success");
       } else {
         await addReview({ rating, comment });
-        alert("Review submitted! Thank you! ⭐");
+        showAlert("Submitted!", "Review submitted successfully! Thank you! ⭐", "success");
       }
       setComment("");
       setRating(5);
       setEditingReviewId(null);
       fetchReviews();
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to submit review");
+      showAlert("Error", err?.response?.data?.message || "Failed to submit review", "error");
     } finally {
       setLoading(false);
     }
@@ -167,14 +202,21 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
   };
 
-  const handleDeleteReview = async (id: string) => {
-    if (!window.confirm("Delete this review?")) return;
-    try {
-      await deleteReview(id);
-      fetchReviews();
-    } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to delete review");
-    }
+  const handleDeleteReview = (id: string) => {
+    showConfirmation(
+      "Delete Review?",
+      "Are you sure you want to delete this review?",
+      async () => {
+        try {
+          await deleteReview(id);
+          fetchReviews();
+        } catch (err: any) {
+          showAlert("Error", err?.response?.data?.message || "Failed to delete review", "error");
+        }
+      },
+      "error",
+      "Delete"
+    );
   };
 
 
@@ -195,52 +237,115 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
     try {
       setLoading(true);
 
-      // 1. Call API
-      const { data } = await updateProfile({ name, email, country, currency });
+      // 1. Detect Email Change
+      if (email.toLowerCase() !== originalEmail.toLowerCase()) {
+        // Trigger Email Change OTP Flow
+        try {
+          await requestEmailChange({ newEmail: email });
+          setShowEmailOtpModal(true);
+          setResendCooldown(60);
+          return; // Stop here, wait for OTP
+        } catch (err: any) {
+          showAlert("Error", err?.response?.data?.message || "Failed to initiate email change ❌", "error");
+          setEmail(originalEmail);
+          return;
+        }
+      }
 
-      // 2. Update Local Storage safely
+      // 2. Call API for other updates
+      const { data } = await updateProfile({ name, country, currency });
+
+      // 3. Update Local Storage safely
       let storedUser = localStorage.getItem("user");
 
-      // 🛡️ SAFETY CHECK: If stored data is corrupt ("undefined"), treat it as empty
       if (storedUser === "undefined") {
         storedUser = "{}";
       }
 
       const currentUser = JSON.parse(storedUser || "{}");
-      const updatedUser = { ...currentUser, name: data.name, email: data.email, country: data.country, currency: data.currency };
+      const updatedUser = { ...currentUser, ...data };
 
       localStorage.setItem("user", JSON.stringify(updatedUser));
 
-      // 3. Success Message
-      alert("Profile updated successfully! ✅");
+      // 4. Sync local state with actual backend data
+      setName(data.name || "");
+      setEmail(data.email || "");
+      setOriginalEmail(data.email || "");
+      setCountry(data.country || "India");
+      setCurrency(data.currency || "INR");
+
+      // 5. Success Message
+      showAlert("Updated!", "Profile updated successfully! ✅", "success");
 
     } catch (error: any) {
       console.error("Update failed", error);
-      alert(error.response?.data?.message || "Failed to update profile");
+      showAlert("Error", error.response?.data?.message || "Failed to update profile", "error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerifyEmailChange = async () => {
+    setLoading(true);
+    try {
+      const { data } = await verifyEmailChange({ otp: emailOtp.join("") });
+      
+      // Update local storage and state
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", data.user.token);
+      
+      setOriginalEmail(data.user.email);
+      setEmail(data.user.email);
+      setShowEmailOtpModal(false);
+      setEmailOtp(["", "", "", "", "", ""]);
+      
+      showAlert("Verified!", "Email updated successfully! ✅", "success");
+      
+      // Also update other profile info (name, country, currency) that might have been changed
+      await updateProfile({ name, country, currency });
+      
+      // Keep local storage up to date with everything
+      const storedUser = localStorage.getItem("user");
+      const currentUser = JSON.parse(storedUser || "{}");
+      const updatedUser = { ...currentUser, name, email: data.user.email, country, currency };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+    } catch (err: any) {
+      showAlert("Error", err?.response?.data?.message || "Invalid or expired code ❌", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendEmailOtp = async () => {
+    if (resendCooldown > 0) return;
+    try {
+      await requestEmailChange({ newEmail: email });
+      setResendCooldown(60);
+      showAlert("Sent!", "New code sent to your email ✅", "info");
+    } catch (err: any) {
+      showAlert("Error", err?.response?.data?.message || "Failed to resend code ❌", "error");
     }
   };
 
   // ✅ HANDLE CHANGE PASSWORD
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      return alert("New passwords do not match!");
+      return showAlert("Wait!", "New passwords do not match!", "warning");
     }
     if (newPassword.length < 6) {
-      return alert("Password must be at least 6 characters");
+      return showAlert("Wait!", "Password must be at least 6 characters", "warning");
     }
 
     try {
       setLoading(true);
       await changePassword({ currentPassword, newPassword });
-      alert("Password updated successfully! ✅");
+      showAlert("Updated!", "Password updated successfully! ✅", "success");
       setShowPasswordModal(false);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      alert(error.response?.data?.message || "Failed to update password");
+      showAlert("Error", error.response?.data?.message || "Failed to update password", "error");
     } finally {
       setLoading(false);
     }
@@ -264,7 +369,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
       setForgotStep("otp");
       setResendCooldown(60);
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to send OTP ❌");
+      showAlert("Error", err?.response?.data?.message || "Failed to send OTP ❌", "error");
     } finally {
       setLoading(false);
     }
@@ -298,7 +403,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
       await resetPassword({ email, otp: otp.join(""), newPassword: resetNewPassword });
       setForgotStep("success");
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to reset password ❌");
+      showAlert("Error", err?.response?.data?.message || "Failed to reset password ❌", "error");
     } finally {
       setLoading(false);
     }
@@ -309,9 +414,9 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
     try {
       await forgotPassword({ email });
       setResendCooldown(60);
-      alert("OTP resent to your email ✅");
+      showAlert("Sent!", "OTP resent to your email ✅", "info");
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to resend OTP ❌");
+      showAlert("Error", err?.response?.data?.message || "Failed to resend OTP ❌", "error");
     }
   };
 
@@ -325,25 +430,33 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
   };
 
   // ✅ HANDLE DELETE ACCOUNT
-  const handleDeleteAccount = async () => {
-    if (!deleteConfirmationPassword) return alert("Please enter your password");
+  const handleDeleteAccount = () => {
+    if (!deleteConfirmationPassword) return showAlert("Wait!", "Please enter your password", "warning");
 
-    if (!window.confirm("Are you absolutely sure? This action cannot be undone.")) return;
+    showConfirmation(
+      "Are you absolutely sure?",
+      "This action cannot be undone. All your data will be permanently deleted.",
+      async () => {
+        try {
+          setLoading(true);
+          await deleteAccount({ password: deleteConfirmationPassword });
 
-    try {
-      setLoading(true);
-      await deleteAccount({ password: deleteConfirmationPassword });
-
-      // Cleanup and Redirect
-      alert("Account deleted. We're sad to see you go! 👋");
-      localStorage.clear();
-      sessionStorage.clear();
-      onNavigate("login");
-    } catch (error: any) {
-      alert(error.response?.data?.message || "Failed to delete account");
-    } finally {
-      setLoading(false);
-    }
+          // Cleanup and Redirect
+          showAlert("Account Deleted", "We're sad to see you go! 👋", "info");
+          setTimeout(() => {
+            localStorage.clear();
+            sessionStorage.clear();
+            onNavigate("login");
+          }, 2000);
+        } catch (error: any) {
+          showAlert("Error", error.response?.data?.message || "Failed to delete account", "error");
+        } finally {
+          setLoading(false);
+        }
+      },
+      "error",
+      "Delete My Account"
+    );
   };
 
   return (
@@ -375,7 +488,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
             <Input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 bg-gray-100 dark:bg-gray-600 dark:text-gray-300 "
+              className="mt-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
             />
           </div>
 
@@ -1039,6 +1152,89 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
         </div>
       </Card>
 
+      {/* ✅ Email Verification Modal */}
+      {showEmailOtpModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300">
+            <div className="flex justify-between items-start mb-6">
+              <div className={`w-14 h-14 bg-gradient-to-br ${userMode === 'employee' ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-2xl flex items-center justify-center shadow-lg`}>
+                <ShieldCheck className="w-8 h-8 text-white" />
+              </div>
+              <button 
+                onClick={() => {
+                  setShowEmailOtpModal(false);
+                  setEmail(originalEmail);
+                }} 
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Verify New Email</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">
+              We've sent a 6-digit verification code to <span className="font-semibold text-gray-900 dark:text-gray-200">{email}</span>. Please enter it below to confirm your new email.
+            </p>
+
+            <div className="flex justify-between gap-2 mb-8">
+              {emailOtp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => (emailOtpRefs.current[index] = el)}
+                  type="text"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (!/^\d*$/.test(value)) return;
+                    const newOtp = [...emailOtp];
+                    newOtp[index] = value;
+                    setEmailOtp(newOtp);
+                    if (value && index < 5) emailOtpRefs.current[index + 1]?.focus();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Backspace" && !emailOtp[index] && index > 0) emailOtpRefs.current[index - 1]?.focus();
+                  }}
+                  className="w-12 h-14 text-center text-2xl font-bold bg-gray-50 dark:bg-gray-700 border-2 border-gray-100 dark:border-gray-600 rounded-xl focus:border-blue-500 dark:focus:border-blue-400 outline-none transition-all dark:text-white"
+                />
+              ))}
+            </div>
+
+            <Button
+              onClick={handleVerifyEmailChange}
+              disabled={loading || emailOtp.some(d => !d)}
+              className={`w-full h-14 rounded-2xl text-lg font-bold shadow-xl transition-all active:scale-95 bg-gradient-to-r ${userMode === 'employee' ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} text-white`}
+            >
+              {loading ? "Verifying..." : "Verify & Update Email"}
+            </Button>
+
+            <div className="mt-8 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Didn't receive the code?{" "}
+                <button
+                  onClick={handleResendEmailOtp}
+                  disabled={resendCooldown > 0}
+                  className={`${resendCooldown > 0 ? "text-gray-400" : "text-blue-600 hover:underline font-semibold"} transition-colors`}
+                >
+                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Premium Modal */}
+      <CustomModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        description={modalConfig.description}
+        type={modalConfig.type}
+        showConfirm={modalConfig.showConfirm}
+        confirmText={modalConfig.confirmText}
+      />
     </div>
   );
 }

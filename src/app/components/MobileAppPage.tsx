@@ -1,5 +1,7 @@
+import { useState, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
+import { CustomModal } from "./ui/CustomModal";
 import { 
   Smartphone, 
   Apple, 
@@ -24,6 +26,44 @@ interface MobileAppPageProps {
 export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPageProps) {
   const isEmp = userMode === 'employee';
   
+  // Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    title: string;
+    description: string;
+    type: 'success' | 'error' | 'confirm' | 'info' | 'warning' | 'question';
+    onConfirm?: () => void;
+    showConfirm?: boolean;
+    confirmText?: string;
+  }>({ title: '', description: '', type: 'info' });
+
+  const downloadRef = useRef<HTMLDivElement>(null);
+
+  const scrollToDownload = () => {
+    downloadRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleAndroidDownload = () => {
+    // Trigger download
+    const link = document.createElement('a');
+    link.href = '/CampusSpend.apk';
+    link.download = 'CampusSpend.apk';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Show Thank You Modal
+    setModalConfig({
+      title: "Download Started!",
+      description: "Thanks for downloading CampusSpend for Android. We'd love to hear your feedback! Please take a moment to rate us on the landing page.",
+      type: 'success',
+      confirmText: "Rate Now",
+      showConfirm: true,
+      onConfirm: () => onNavigate('landing')
+    });
+    setShowModal(true);
+  };
+
   const theme = {
     gradient: isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600',
     text: isEmp ? 'text-blue-600' : 'text-purple-600',
@@ -94,39 +134,17 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
               </p>
               
               <div className="flex flex-wrap gap-4">
-                <div className="relative group">
-                  <Button 
-                    disabled
-                    size="lg" 
-                    className="bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 rounded-2xl h-16 px-8 flex items-center gap-3 cursor-not-allowed border border-gray-100 dark:border-gray-700"
-                  >
-                    <Apple className="w-8 h-8 opacity-50" />
-                    <div className="text-left">
-                      <div className="text-[10px] uppercase font-bold opacity-50">Available on</div>
-                      <div className="text-xl font-bold leading-none">App Store</div>
-                    </div>
-                  </Button>
-                  <div className="absolute -top-3 -right-3 bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg">
-                    Coming Soon
-                  </div>
-                </div>
-                
-                <a 
-                  href="/CampusSpend.apk" 
-                  download="CampusSpend.apk"
-                  className="inline-flex items-center"
+                <Button 
+                  onClick={scrollToDownload}
+                  size="lg" 
+                  className="bg-black hover:bg-gray-800 text-white rounded-2xl h-16 px-8 flex items-center gap-3 transition-transform hover:scale-105"
                 >
-                  <Button 
-                    size="lg" 
-                    className="bg-black hover:bg-gray-800 text-white rounded-2xl h-16 px-8 flex items-center gap-3 transition-transform hover:scale-105"
-                  >
-                    <Play className="w-8 h-8 fill-white" />
-                    <div className="text-left">
-                      <div className="text-[10px] uppercase font-bold opacity-70">Download for</div>
-                      <div className="text-xl font-bold leading-none">Android APK</div>
-                    </div>
-                  </Button>
-                </a>
+                  <Play className="w-8 h-8 fill-white" />
+                  <div className="text-left">
+                    <div className="text-[10px] uppercase font-bold opacity-70">Get the app for</div>
+                    <div className="text-xl font-bold leading-none">Android & iOS</div>
+                  </div>
+                </Button>
               </div>
 
               <div className="mt-8 flex items-center gap-6">
@@ -153,7 +171,7 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
         </section>
 
         {/* Comparison Section */}
-        <section className={`py-20 ${theme.bg} dark:bg-gray-800/30 transition-colors`}>
+        <section ref={downloadRef} className={`py-20 ${theme.bg} dark:bg-gray-800/30 transition-colors`}>
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center mb-16">
               <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -163,15 +181,36 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
-              <Card className="p-8 bg-white dark:bg-gray-800 border-0 shadow-xl overflow-hidden relative group">
-                <div className={`absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150`}></div>
-                <div className="flex items-center gap-4 mb-8">
+              <Card className="p-8 bg-white dark:bg-gray-800 border-0 shadow-xl overflow-hidden relative group hover:-translate-y-2 hover:shadow-2xl transition-all duration-500 min-h-[450px] flex flex-col">
+                {/* Expanding corner accent */}
+                <div className={`absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 transition-all duration-700 ease-out group-hover:scale-[3] group-hover:opacity-50`}></div>
+                
+                {/* Background Symbol */}
+                <div className="absolute -bottom-8 -right-8 opacity-0 group-hover:opacity-[0.04] dark:group-hover:opacity-[0.08] transition-all duration-700 transform group-hover:-translate-y-4 group-hover:-translate-x-4 group-hover:scale-110 group-hover:-rotate-12 pointer-events-none z-0">
+                  <Apple className="w-64 h-64 text-blue-500" />
+                </div>
+
+                <div className="relative z-10">
+                  <div className="flex justify-between items-start mb-8">
                   <div>
                     <h3 className="text-xl font-bold dark:text-white">CampusSpend for iOS</h3>
                     <p className="text-sm text-gray-500">Requires iOS 15.0 or later</p>
                   </div>
+                  <div className="relative group">
+                    <Button 
+                      disabled
+                      size="sm"
+                      className="bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 rounded-lg h-10 px-4 flex items-center gap-2 cursor-not-allowed border border-gray-100 dark:border-gray-600"
+                    >
+                      <Apple className="w-4 h-4 opacity-50" />
+                      <span className="text-xs font-bold text-gray-400">Download for iOS</span>
+                    </Button>
+                    <div className="absolute -top-2 -right-1 bg-purple-500 text-white text-[8px] font-bold px-2 py-0.5 rounded-full shadow-lg">
+                      Soon
+                    </div>
+                  </div>
                 </div>
-                <ul className="space-y-4">
+                <ul className="space-y-4 flex-grow">
                   {['Full Transaction History', 'Advanced Expense Analytics', 'Dynamic Budget Planning', 'Savings Goals Tracking'].map((item, i) => (
                     <li key={i} className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -179,17 +218,34 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
                     </li>
                   ))}
                 </ul>
+                </div>
               </Card>
 
-              <Card className="p-8 bg-white dark:bg-gray-800 border-0 shadow-xl overflow-hidden relative group">
-                <div className={`absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150`}></div>
-                <div className="flex items-center gap-4 mb-8">
+              <Card className="p-8 bg-white dark:bg-gray-800 border-0 shadow-xl overflow-hidden relative group hover:-translate-y-2 hover:shadow-2xl transition-all duration-500 min-h-[450px] flex flex-col">
+                {/* Expanding corner accent */}
+                <div className={`absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -mr-16 -mt-16 transition-all duration-700 ease-out group-hover:scale-[3] group-hover:opacity-50`}></div>
+                
+                {/* Background Symbol */}
+                <div className="absolute -bottom-8 -right-8 opacity-0 group-hover:opacity-[0.04] dark:group-hover:opacity-[0.08] transition-all duration-700 transform group-hover:-translate-y-4 group-hover:-translate-x-4 group-hover:scale-110 group-hover:rotate-12 pointer-events-none z-0">
+                  <Smartphone className="w-64 h-64 text-green-500" />
+                </div>
+
+                <div className="relative z-10">
+                  <div className="flex justify-between items-start mb-8">
                   <div>
                     <h3 className="text-xl font-bold dark:text-white">CampusSpend for Android</h3>
                     <p className="text-sm text-gray-500">Requires Android 8.0 or later</p>
                   </div>
+                  <Button 
+                    size="sm" 
+                    onClick={handleAndroidDownload}
+                    className="bg-green-600 hover:bg-green-700 text-white rounded-lg h-10 px-4 flex items-center gap-2 transition-transform hover:scale-[1.05]"
+                  >
+                    <Play className="w-4 h-4 fill-white" />
+                    <span className="text-xs font-bold text-white">Download for Android</span>
+                  </Button>
                 </div>
-                <ul className="space-y-4">
+                <ul className="space-y-4 flex-grow">
                   {['Monthly Salary Tracker', 'EMI & Debt Management', 'Smart Bill Reminders', 'Real-time Data Sync'].map((item, i) => (
                     <li key={i} className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -197,6 +253,7 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
                     </li>
                   ))}
                 </ul>
+                </div>
               </Card>
             </div>
           </div>
@@ -261,6 +318,18 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
           </div>
         </div>
       </footer>
+
+      <CustomModal 
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={modalConfig.title}
+        description={modalConfig.description}
+        type={modalConfig.type}
+        showConfirm={modalConfig.showConfirm}
+        confirmText={modalConfig.confirmText}
+        onConfirm={modalConfig.onConfirm}
+        cancelText="Maybe Later"
+      />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   DollarSign,
   Trash2
 } from "lucide-react";
+import { CustomModal } from "./ui/CustomModal";
 
 // Import services
 import { getSavingsGoals, addSavingsGoal, updateSavingsGoal, deleteSavingsGoal } from "../../api/services";
@@ -42,6 +43,32 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
   const [showContributeModal, setShowContributeModal] = useState<string | null>(null);
+
+  // ✅ Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    title: string;
+    description: string;
+    type: "success" | "error" | "warning" | "info" | "question";
+    onConfirm?: () => void;
+    showConfirm?: boolean;
+    confirmText?: string;
+  }>({
+    title: "",
+    description: "",
+    type: "info",
+    showConfirm: true,
+  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showAlert = (title: string, description: string, type: any = "success") => {
+    setModalConfig({ title, description, type, showConfirm: false });
+    setIsModalOpen(true);
+  };
+
+  const showConfirmation = (title: string, description: string, onConfirm: () => void, type: any = "warning", confirmText: string = "Confirm") => {
+    setModalConfig({ title, description, type, onConfirm, showConfirm: true, confirmText });
+    setIsModalOpen(true);
+  };
 
   // Forms
   const [contributeAmount, setContributeAmount] = useState('');
@@ -80,14 +107,14 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
         setContributeAmount('');
         setShowContributeModal(null);
         loadGoals();
-      } catch (error) {
-        alert("Failed to update savings goal");
+      } catch (error: any) {
+        showAlert("Error", error?.response?.data?.message || "Failed to update savings goal", "error");
       }
     }
   };
 
   const handleCreateGoal = async () => {
-    if (!newName || !newTarget) return alert("Please fill in name and target");
+    if (!newName || !newTarget) return showAlert("Wait!", "Please fill in name and target", "warning");
     try {
       await addSavingsGoal({
         name: newName,
@@ -100,20 +127,26 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
       setNewEmoji("🎯");
       setShowAddModal(false);
       loadGoals();
-    } catch (error) {
-      alert("Failed to create goal");
+    } catch (error: any) {
+      showAlert("Error", error?.response?.data?.message || "Failed to create goal", "error");
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this goal?")) {
-      try {
-        await deleteSavingsGoal(id);
-        loadGoals();
-      } catch (error) {
-        console.error("Failed to delete goal");
-      }
-    }
+  const handleDelete = (id: string) => {
+    showConfirmation(
+      "Delete Goal?",
+      "Are you sure you want to delete this savings goal? This action cannot be undone.",
+      async () => {
+        try {
+          await deleteSavingsGoal(id);
+          loadGoals();
+        } catch (error) {
+          console.error("Failed to delete goal");
+        }
+      },
+      "error",
+      "Delete"
+    );
   };
 
   return (
@@ -354,6 +387,18 @@ export function SavingsPage({ userMode = 'student' }: SavingsPageProps) {
           </Card>
         </div>
       )}
+
+      {/* ✅ Premium Modal */}
+      <CustomModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        description={modalConfig.description}
+        type={modalConfig.type}
+        showConfirm={modalConfig.showConfirm}
+        confirmText={modalConfig.confirmText}
+      />
     </div>
   );
 }

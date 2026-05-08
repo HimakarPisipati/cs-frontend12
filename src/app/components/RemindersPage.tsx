@@ -9,6 +9,7 @@ import {
   RepeatIcon, BellRing, CheckCircle2, Clock, IndianRupee,
 } from "lucide-react";
 import { getReminders, addReminder, updateReminder, deleteReminder, addTransaction } from "../../api/services";
+import { CustomModal } from "./ui/CustomModal";
 
 // ─── Types ──────────────────────────────────────────────────────────────────────
 type Reminder = {
@@ -112,6 +113,32 @@ export function RemindersPage({ userMode = 'student' }: { userMode?: string }) {
   const [formDate, setFormDate] = useState(today.toISOString().split("T")[0]);
   const [formRecurring, setFormRecurring] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // ✅ Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    title: string;
+    description: string;
+    type: "success" | "error" | "warning" | "info" | "question";
+    onConfirm?: () => void;
+    showConfirm?: boolean;
+    confirmText?: string;
+  }>({
+    title: "",
+    description: "",
+    type: "info",
+    showConfirm: true,
+  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showAlert = (title: string, description: string, type: any = "success") => {
+    setModalConfig({ title, description, type, showConfirm: false });
+    setIsModalOpen(true);
+  };
+
+  const showConfirmation = (title: string, description: string, onConfirm: () => void, type: any = "warning", confirmText: string = "Confirm") => {
+    setModalConfig({ title, description, type, onConfirm, showConfirm: true, confirmText });
+    setIsModalOpen(true);
+  };
 
   // ── Load ──────────────────────────────────────────────────────────────────────
   const loadReminders = async () => {
@@ -296,47 +323,64 @@ export function RemindersPage({ userMode = 'student' }: { userMode?: string }) {
       };
       if (editingReminder) {
         await updateReminder(editingReminder._id, payload);
+        showAlert("Updated!", "Reminder updated successfully ✅", "success");
       } else {
         await addReminder(payload);
+        showAlert("Added!", "New reminder created successfully ✅", "success");
       }
       closeModal();
       await loadReminders();
     } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to save reminder ❌");
+      showAlert("Error", err?.response?.data?.message || "Failed to save reminder ❌", "error");
     } finally {
       setSubmitting(false);
     }
   }
 
   async function handleMarkPaid(r: Reminder) {
-    if (!window.confirm(`Mark "${r.title}" as paid?\nThis will also record ${getCurrencySymbol()}${r.amount} as an expense transaction.`)) return;
-    try {
-      // Mark reminder as paid
-      await updateReminder(r._id, { isPaid: true });
-      // Auto-create a transaction for this expense
-      await addTransaction({
-        type: "expense",
-        amount: r.amount,
-        category: "Bills",
-        note: r.title + (r.description ? ` — ${r.description}` : ""),
-        paymentMethod: "cash",
-        date: new Date().toISOString(),
-      });
-      await loadReminders();
-    } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to mark as paid ❌");
-    }
+    showConfirmation(
+      "Confirm Payment",
+      `Mark "${r.title}" as paid?\nThis will also record ${getCurrencySymbol()}${r.amount} as an expense transaction.`,
+      async () => {
+        try {
+          // Mark reminder as paid
+          await updateReminder(r._id, { isPaid: true });
+          // Auto-create a transaction for this expense
+          await addTransaction({
+            type: "expense",
+            amount: r.amount,
+            category: "Bills",
+            note: r.title + (r.description ? ` — ${r.description}` : ""),
+            paymentMethod: "cash",
+            date: new Date().toISOString(),
+          });
+          showAlert("Paid!", "Reminder marked as paid and transaction recorded ✅", "success");
+          await loadReminders();
+        } catch (err: any) {
+          showAlert("Error", err?.response?.data?.message || "Failed to mark as paid ❌", "error");
+        }
+      },
+      "question",
+      "Confirm"
+    );
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Delete this reminder?")) return;
-    try {
-      setReminders((prev) => prev.filter((r) => r._id !== id));
-      await deleteReminder(id);
-    } catch (err: any) {
-      alert(err?.response?.data?.message || "Failed to delete ❌");
-      loadReminders();
-    }
+    showConfirmation(
+      "Delete Reminder?",
+      "Are you sure you want to delete this reminder? This cannot be undone.",
+      async () => {
+        try {
+          setReminders((prev) => prev.filter((r) => r._id !== id));
+          await deleteReminder(id);
+        } catch (err: any) {
+          showAlert("Error", err?.response?.data?.message || "Failed to delete ❌", "error");
+          loadReminders();
+        }
+      },
+      "error",
+      "Delete"
+    );
   }
 
   // ── Render ────────────────────────────────────────────────────────────────────
@@ -712,6 +756,18 @@ export function RemindersPage({ userMode = 'student' }: { userMode?: string }) {
           </Card>
         </div>
       )}
+
+      {/* ✅ Premium Modal */}
+      <CustomModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        description={modalConfig.description}
+        type={modalConfig.type}
+        showConfirm={modalConfig.showConfirm}
+        confirmText={modalConfig.confirmText}
+      />
     </div>
   );
 }

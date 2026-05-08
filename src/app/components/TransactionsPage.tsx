@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { CategoryIcon } from "./CategoryIcon";
+import { CustomModal } from "./ui/CustomModal";
 
 import { categories, getCategoryIcon, getCategoryColor, getCategories } from "../data/mockData";
 
@@ -63,6 +64,32 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
   const [userData, setUserData] = useState<{name: string, email: string, _id: string} | null>(null);
   const [globalBudget, setGlobalBudget] = useState(0);
 
+  // ✅ Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    title: string;
+    description: string;
+    type: "success" | "error" | "warning" | "info" | "question";
+    onConfirm?: () => void;
+    showConfirm?: boolean;
+    confirmText?: string;
+  }>({
+    title: "",
+    description: "",
+    type: "info",
+    showConfirm: true,
+  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showAlert = (title: string, description: string, type: any = "success") => {
+    setModalConfig({ title, description, type, showConfirm: false });
+    setIsModalOpen(true);
+  };
+
+  const showConfirmation = (title: string, description: string, onConfirm: () => void, type: any = "warning") => {
+    setModalConfig({ title, description, type, onConfirm, showConfirm: true, confirmText: "Delete" });
+    setIsModalOpen(true);
+  };
+
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
     setUserData(storedUser);
@@ -97,7 +124,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       setTransactions(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
       console.log(err);
-      alert(err?.response?.data?.message || "Failed to load transactions ❌");
+      showAlert("Error", err?.response?.data?.message || "Failed to load transactions ❌", "error");
       setTransactions([]); // Fallback to empty array on error
     } finally {
       setLoading(false);
@@ -109,22 +136,25 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
   }, []);
 
   // ✅ New Delete Handler
-  const handleDeleteTransaction = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this transaction?")) return;
-
-    try {
-      // Optimistically remove from UI first for speed
-      setTransactions((prev) => prev.filter((t) => t._id !== id));
-
-      // Call backend
-      await deleteTransaction(id);
-
-    } catch (err: any) {
-      console.log(err);
-      alert(err?.response?.data?.message || "Failed to delete transaction ❌");
-      // Revert if failed
-      loadTransactions();
-    }
+  const handleDeleteTransaction = (id: string) => {
+    showConfirmation(
+      "Are you sure?",
+      "This action will permanently delete this transaction from your history. This cannot be undone.",
+      async () => {
+        try {
+          // Optimistically remove from UI first for speed
+          setTransactions((prev) => prev.filter((t) => t._id !== id));
+          // Call backend
+          await deleteTransaction(id);
+        } catch (err: any) {
+          console.log(err);
+          showAlert("Error", err?.response?.data?.message || "Failed to delete transaction ❌", "error");
+          // Revert if failed
+          loadTransactions();
+        }
+      },
+      "error"
+    );
   };
 
   // Edit handler — pre-fills form and opens modal
@@ -155,7 +185,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       const matchesCategory = selectedCategory === "all" || t.category === selectedCategory;
       const matchesSearch =
         (t.note || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.category.toLowerCase().includes(searchQuery.toLowerCase());
+        (t.category || "").toLowerCase().includes(searchQuery.toLowerCase());
 
       return matchesType && matchesCategory && matchesSearch;
     });
@@ -185,11 +215,11 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       if (editingTransaction) {
         // UPDATE existing transaction
         await updateTransaction(editingTransaction._id, payload);
-        alert("Transaction updated ✅");
+        showAlert("Updated!", "Transaction has been updated successfully ✅", "success");
       } else {
         // ADD new transaction
         await addTransaction(payload);
-        alert("Transaction added ✅");
+        showAlert("Added!", "New transaction has been added successfully ✅", "success");
       }
 
       setShowAddModal(false);
@@ -207,7 +237,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       await loadTransactions();
     } catch (err: any) {
       console.log(err);
-      alert(err?.response?.data?.message || "Failed to save transaction ❌");
+      showAlert("Error", err?.response?.data?.message || "Failed to save transaction ❌", "error");
     }
   };
 
@@ -250,36 +280,40 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       const boxWidth = 58;
       const spacing = 4;
       
-      // Box 1: Income
-      doc.setFillColor(240, 255, 240); 
+      // Box 1: Total Budget
+      doc.setFillColor(232, 255, 232); // Pale Green bg
       doc.rect(14, 60, boxWidth, 25, 'F');
-      doc.setTextColor(0, 100, 0);
+      doc.setTextColor(0, 100, 0); // Dark Green text
+      doc.setFont("helvetica", "bold");
       doc.setFontSize(8);
-      doc.text("TOTAL INCOME", 18, 68);
+      doc.text("TOTAL BUDGET", 18, 68);
       doc.setFontSize(12);
-      doc.text(`${getCurrencySymbol()} ${totalIncome.toLocaleString()}`, 18, 78);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Rs. ${globalBudget.toLocaleString()}`, 18, 78);
 
-      // Box 2: Expense
-      doc.setFillColor(255, 240, 240); 
+      // Box 2: Total Expenses
+      doc.setFillColor(255, 242, 242); // Pale Red bg
       doc.rect(14 + (boxWidth + spacing), 60, boxWidth, 25, 'F');
-      doc.setTextColor(150, 0, 0);
+      doc.setTextColor(150, 0, 0); // Dark Red text
+      doc.setFont("helvetica", "bold");
       doc.setFontSize(8);
       doc.text("TOTAL EXPENSES", 14 + (boxWidth + spacing) + 4, 68);
       doc.setFontSize(12);
-      doc.text(`${getCurrencySymbol()} ${totalExpense.toLocaleString()}`, 14 + (boxWidth + spacing) + 4, 78);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Rs. ${totalExpense.toLocaleString()}`, 14 + (boxWidth + spacing) + 4, 78);
 
       // Box 3: Budget Remaining
       const remaining = globalBudget - totalExpense;
-      const budgetBoxColor = globalBudget > 0 ? (remaining >= 0 ? [230, 245, 255] : [255, 230, 230]) : [240, 240, 240];
-      const budgetTextColor = remaining < 0 ? [180, 0, 0] : (isEmployee ? [8, 145, 178] : [0, 80, 150]);
       
-      doc.setFillColor(budgetBoxColor[0], budgetBoxColor[1], budgetBoxColor[2]);
+      doc.setFillColor(235, 245, 255); // Pale Blue bg
       doc.rect(14 + 2 * (boxWidth + spacing), 60, boxWidth, 25, 'F');
-      doc.setTextColor(budgetTextColor[0], budgetTextColor[1], budgetTextColor[2]);
+      doc.setTextColor(85, 45, 145); // Purple text
+      doc.setFont("helvetica", "bold");
       doc.setFontSize(8);
       doc.text("BUDGET LEFT", 14 + 2 * (boxWidth + spacing) + 4, 68);
       doc.setFontSize(12);
-      doc.text(`${getCurrencySymbol()} ${globalBudget > 0 ? remaining.toLocaleString() : 'N/A'}`, 14 + 2 * (boxWidth + spacing) + 4, 78);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Rs. ${globalBudget > 0 ? remaining.toLocaleString() : 'N/A'}`, 14 + 2 * (boxWidth + spacing) + 4, 78);
 
       // --- User & Filter Details ---
       doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
@@ -312,7 +346,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
         t.category,
         t.note || "-",
         (t.paymentMethod || "cash").toUpperCase(),
-        `${getCurrencySymbol()} ${Number(t.amount).toLocaleString()}`,
+        `Rs. ${Number(t.amount).toLocaleString()}`,
       ]);
 
       autoTable(doc, {
@@ -352,10 +386,10 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
       doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
-      doc.text("DIGITALLY VERIFIED PRO STATEMENT", 18, stampY + 6);
+      doc.text(`DIGITALLY VERIFIED ${isEmployee ? "PRO " : ""}STATEMENT`, 18, stampY + 6);
       doc.setFont("helvetica", "italic");
       doc.setFontSize(7);
-      doc.text("This statement is generated digitally by CampusSpend Pro", 18, stampY + 10);
+      doc.text(`This statement is generated digitally by ${isEmployee ? "CampusSpend Pro" : "CampusSpend"}`, 18, stampY + 10);
       doc.text("and does not require a physical signature.", 18, stampY + 13);
 
       // --- Footer ---
@@ -500,14 +534,16 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
                       {transaction.note || "No description"}
                     </p>
                     <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      <span>{transaction.category}</span>
+                      <span>{transaction.category || "General"}</span>
                       <span>•</span>
                       <span>
-                        {new Date(transaction.date).toLocaleDateString("en-IN", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        {transaction.date && !isNaN(new Date(transaction.date).getTime())
+                          ? new Date(transaction.date).toLocaleDateString("en-IN", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })
+                          : "Unknown Date"}
                       </span>
                       <Badge variant="outline" className="ml-1">
                         {paymentLabel(transaction.paymentMethod)}
@@ -524,7 +560,7 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
                         }`}
                     >
                       {transaction.type === "expense" ? "-" : "+"}{getCurrencySymbol()}
-                      {transaction.amount.toLocaleString()}
+                      {Number(transaction.amount || 0).toLocaleString()}
                     </div>
                     <Badge
                       variant="secondary"
@@ -738,6 +774,18 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
           </Card>
         </div>
       )}
+
+      {/* ✅ Premium Modal */}
+      <CustomModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        description={modalConfig.description}
+        type={modalConfig.type}
+        showConfirm={modalConfig.showConfirm}
+        confirmText={modalConfig.confirmText}
+      />
     </div>
   );
 }

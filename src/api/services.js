@@ -41,6 +41,8 @@ export const switchMode = (data) => {
   }
   return API.post("/auth/switch-mode", data);
 };
+export const requestEmailChange = (data) => API.post("/auth/request-email-change", data);
+export const verifyEmailChange = (data) => API.post("/auth/verify-email-change", data);
 // Note: Axios requires body data for DELETE requests to be wrapped in { data: ... }
 
 // ✅ ALIASES (Backwards Compatibility)

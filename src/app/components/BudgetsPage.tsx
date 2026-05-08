@@ -9,6 +9,7 @@ import {
   Plus, Wallet, AlertCircle, Pencil, Trash2, X, Save, PieChart, LayoutDashboard, ArrowRight, Info
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { CustomModal } from "./ui/CustomModal";
 
 // ✅ Import API services
 import { getBudgets, addBudget, updateBudget, deleteBudget, getTransactions, getUserProfile } from "../../api/services";
@@ -30,6 +31,32 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [budgetModel] = useState<'new'>('new');
   const [loading, setLoading] = useState(true);
+
+  // ✅ Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    title: string;
+    description: string;
+    type: "success" | "error" | "warning" | "info" | "question";
+    onConfirm?: () => void;
+    showConfirm?: boolean;
+    confirmText?: string;
+  }>({
+    title: "",
+    description: "",
+    type: "info",
+    showConfirm: true,
+  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showAlert = (title: string, description: string, type: any = "success") => {
+    setModalConfig({ title, description, type, showConfirm: false });
+    setIsModalOpen(true);
+  };
+
+  const showConfirmation = (title: string, description: string, onConfirm: () => void, type: any = "warning", confirmText: string = "Confirm") => {
+    setModalConfig({ title, description, type, onConfirm, showConfirm: true, confirmText });
+    setIsModalOpen(true);
+  };
 
   // Modal State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -83,7 +110,7 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
   };
 
   const handleSaveBudget = async () => {
-    if (!limit) return alert("Please enter a limit");
+    if (!limit) return showAlert("Wait!", "Please enter a budget limit", "warning");
     try {
       const budgetData = {
         category: category.toLowerCase() === "general" ? "General" : category,
@@ -93,7 +120,7 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
 
       if (budgetModel === 'new' && category !== "General" && !editingId) {
         if (Number(limit) > unallocatedLimit) {
-          return alert(`You only have ${getCurrencySymbol()}${unallocatedLimit.toLocaleString()} left in your unallocated pool.`);
+          return showAlert("Limit Exceeded!", `You only have ${getCurrencySymbol()}${unallocatedLimit.toLocaleString()} left in your unallocated pool.`, "error");
         }
       }
 
@@ -109,8 +136,10 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
 
       if (finalEditingId) {
         await updateBudget(finalEditingId, budgetData);
+        showAlert("Updated!", "Budget has been updated successfully ✅", "success");
       } else {
         await addBudget(budgetData);
+        showAlert("Added!", "New budget has been added successfully ✅", "success");
       }
       setShowAddModal(false);
       setEditingId(null);
@@ -118,18 +147,25 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
       setLimit("");
       loadData();
     } catch (error: any) {
-      alert(error?.response?.data?.message || "Failed to save budget");
+      showAlert("Error", error?.response?.data?.message || "Failed to save budget", "error");
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Delete this budget?")) return;
-    try {
-      await deleteBudget(id);
-      loadData();
-    } catch (error) {
-      console.error("Failed to delete budget", error);
-    }
+  const handleDelete = (id: string) => {
+    showConfirmation(
+      "Delete Budget?",
+      "Are you sure you want to delete this budget? This action cannot be undone.",
+      async () => {
+        try {
+          await deleteBudget(id);
+          loadData();
+        } catch (error) {
+          console.error("Failed to delete budget", error);
+        }
+      },
+      "error",
+      "Delete"
+    );
   };
 
   const openEdit = (budget: any) => {
@@ -447,6 +483,18 @@ export function BudgetsPage({ userMode = 'student' }: BudgetsPageProps) {
           </Card>
         </div>
       )}
+
+      {/* ✅ Premium Modal */}
+      <CustomModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        description={modalConfig.description}
+        type={modalConfig.type}
+        showConfirm={modalConfig.showConfirm}
+        confirmText={modalConfig.confirmText}
+      />
     </div>
   );
 }

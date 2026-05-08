@@ -9,6 +9,7 @@ import {
     X, Plus, Trash2, Pencil, Briefcase, TrendingUp, TrendingDown, DollarSign
 } from "lucide-react";
 import { getSalaries, addSalary, updateSalary, deleteSalary } from "../../api/services";
+import { CustomModal } from "./ui/CustomModal";
 
 type SalaryEntry = {
     _id: string;
@@ -29,6 +30,32 @@ export function SalaryPage() {
     const [showModal, setShowModal] = useState(false);
     const [editingEntry, setEditingEntry] = useState<SalaryEntry | null>(null);
 
+    // ✅ Modal State
+    const [modalConfig, setModalConfig] = useState<{
+        title: string;
+        description: string;
+        type: "success" | "error" | "warning" | "info" | "question";
+        onConfirm?: () => void;
+        showConfirm?: boolean;
+        confirmText?: string;
+    }>({
+        title: "",
+        description: "",
+        type: "info",
+        showConfirm: true,
+    });
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const showAlert = (title: string, description: string, type: any = "success") => {
+        setModalConfig({ title, description, type, showConfirm: false });
+        setIsModalOpen(true);
+    };
+
+    const showConfirmation = (title: string, description: string, onConfirm: () => void, type: any = "warning", confirmText: string = "Confirm") => {
+        setModalConfig({ title, description, type, onConfirm, showConfirm: true, confirmText });
+        setIsModalOpen(true);
+    };
+
     // Form state
     const [month, setMonth] = useState(() => {
         const now = new Date();
@@ -47,7 +74,7 @@ export function SalaryPage() {
             setSalaries(Array.isArray(res.data) ? res.data : []);
         } catch (err: any) {
             console.error(err);
-            alert(err?.response?.data?.message || "Failed to load salary entries ❌");
+            showAlert("Error", err?.response?.data?.message || "Failed to load salary entries ❌", "error");
             setSalaries([]);
         } finally {
             setLoading(false);
@@ -83,17 +110,17 @@ export function SalaryPage() {
 
             if (editingEntry) {
                 await updateSalary(editingEntry._id, payload);
-                alert("Salary entry updated ✅");
+                showAlert("Updated!", "Salary entry updated successfully ✅", "success");
             } else {
                 await addSalary(payload);
-                alert("Salary entry added ✅");
+                showAlert("Added!", "Salary entry added successfully ✅", "success");
             }
 
             setShowModal(false);
             resetForm();
             await loadSalaries();
         } catch (err: any) {
-            alert(err?.response?.data?.message || "Failed to save salary entry ❌");
+            showAlert("Error", err?.response?.data?.message || "Failed to save salary entry ❌", "error");
         }
     };
 
@@ -108,15 +135,22 @@ export function SalaryPage() {
         setShowModal(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (!window.confirm("Delete this salary entry?")) return;
-        try {
-            setSalaries((prev) => prev.filter((s) => s._id !== id));
-            await deleteSalary(id);
-        } catch (err: any) {
-            alert(err?.response?.data?.message || "Failed to delete ❌");
-            loadSalaries();
-        }
+    const handleDelete = (id: string) => {
+        showConfirmation(
+            "Delete Entry?",
+            "Are you sure you want to delete this salary entry? This action cannot be undone.",
+            async () => {
+                try {
+                    setSalaries((prev) => prev.filter((s) => s._id !== id));
+                    await deleteSalary(id);
+                } catch (err: any) {
+                    showAlert("Error", err?.response?.data?.message || "Failed to delete ❌", "error");
+                    loadSalaries();
+                }
+            },
+            "error",
+            "Delete"
+        );
     };
 
     // Summary calculations
@@ -334,6 +368,18 @@ export function SalaryPage() {
                     </Card>
                 </div>
             )}
+
+            {/* ✅ Premium Modal */}
+            <CustomModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={modalConfig.onConfirm}
+                title={modalConfig.title}
+                description={modalConfig.description}
+                type={modalConfig.type}
+                showConfirm={modalConfig.showConfirm}
+                confirmText={modalConfig.confirmText}
+            />
         </div>
     );
 }
