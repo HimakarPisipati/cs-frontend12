@@ -22,10 +22,9 @@ interface SettingsPageProps {
 }
 
 export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }: SettingsPageProps) {
-  // --- THEME STATE ---
   const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("theme") === "dark";
-    return false;
+    if (typeof window !== "undefined") return localStorage.getItem("theme") !== "light";
+    return true;
   });
 
   // --- NOTIFICATION STATE ---

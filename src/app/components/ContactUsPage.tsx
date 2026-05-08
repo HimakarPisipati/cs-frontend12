@@ -29,7 +29,7 @@ export function ContactUsPage({ onNavigate, userMode = "student" }: ContactUsPag
   const isEmp = userMode === "employee";
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark") ||
-      localStorage.getItem("theme") === "dark";
+      localStorage.getItem("theme") !== "light";
   });
 
   const [formData, setFormData] = useState({

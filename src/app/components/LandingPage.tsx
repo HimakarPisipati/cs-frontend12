@@ -49,7 +49,7 @@ interface LandingPageProps {
 export function LandingPage({ onNavigate, userMode = "student", onModeChange }: LandingPageProps) {
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark") ||
-      localStorage.getItem("theme") === "dark";
+      localStorage.getItem("theme") !== "light";
   });
   
   const isEmp = userMode === 'employee';

@@ -61,7 +61,7 @@ export function HelpCenterPage({ onNavigate, userMode = "student" }: HelpCenterP
   const isEmp = userMode === "employee";
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark") ||
-      localStorage.getItem("theme") === "dark";
+      localStorage.getItem("theme") !== "light";
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);

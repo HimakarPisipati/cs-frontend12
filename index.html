@@ -6,7 +6,7 @@
     <link id="favicon" rel="icon" type="image/png" href="/logo-student.png" />
     <title>CampusSpend</title>
     <script>
-      if (localStorage.getItem("theme") === "dark") {
+      if (localStorage.getItem("theme") !== "light") {
         document.documentElement.classList.add("dark");
       } else {
         document.documentElement.classList.remove("dark");
