@@ -312,8 +312,12 @@ export function MobileAppPage({ onNavigate, userMode = 'student' }: MobileAppPag
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">© 2026 CampusSpend. All rights reserved.</p>
           <div className="flex justify-center gap-6">
+            <button onClick={() => onNavigate('blog')} className="text-xs text-gray-400 hover:text-gray-600">Blog</button>
             <button onClick={() => onNavigate('privacy-policy')} className="text-xs text-gray-400 hover:text-gray-600">Privacy Policy</button>
             <button onClick={() => onNavigate('help-center')} className="text-xs text-gray-400 hover:text-gray-600">Help Center</button>
+            <button onClick={() => onNavigate('roadmap')} className="text-xs text-gray-400 hover:text-gray-600">Roadmap</button>
+            <button onClick={() => onNavigate('changelog')} className="text-xs text-gray-400 hover:text-gray-600">Changelog</button>
+            <button onClick={() => onNavigate('security')} className="text-xs text-gray-400 hover:text-gray-600">Security</button>
             <button onClick={() => onNavigate('contact-us')} className="text-xs text-gray-400 hover:text-gray-600">Contact Us</button>
           </div>
         </div>

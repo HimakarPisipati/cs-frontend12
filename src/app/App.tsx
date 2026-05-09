@@ -17,6 +17,11 @@ import { HelpCenterPage } from "./components/HelpCenterPage";
 import { ContactUsPage } from "./components/ContactUsPage";
 import { MobileAppPage } from "./components/MobileAppPage";
 import { FeaturesPage } from "./components/FeaturesPage";
+import { BlogPage } from "./components/BlogPage";
+import { ArticlePage } from "./components/ArticlePage";
+import { ChangelogPage } from "./components/ChangelogPage";
+import { RoadmapPage } from "./components/RoadmapPage";
+import { SecurityPage } from "./components/SecurityPage";
 import { login } from "../api/services";
 
 export default function App() {
@@ -28,9 +33,27 @@ export default function App() {
   );
 
   // ✅ User Mode: student or employee
-  const [userMode, setUserMode] = useState<string>(() => {
-    return localStorage.getItem("userMode") || "student";
-  });
+  const [userMode, setUserMode] = useState<"student" | "employee">("student");
+  const [selectedArticle, setSelectedArticle] = useState<any>(null);
+
+  const handleNavigate = (page: string, data?: any) => {
+    if (data && page === 'article') {
+      setSelectedArticle(data);
+    }
+    
+    if (page === "demo-login") {
+      handleDemoLogin();
+      return;
+    }
+    
+    if (page === "login" && localStorage.getItem("token")) {
+      setCurrentPage("dashboard");
+      return;
+    }
+
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
 
   // ✅ Dynamic tab title + favicon based on mode
   useEffect(() => {
@@ -42,7 +65,6 @@ export default function App() {
     }
   }, [userMode]);
 
-  // ✅ FIX 2: Added "dashboard" to this list so it gets protected too
   const protectedPages = [
     "dashboard",
     "transactions",
@@ -56,7 +78,6 @@ export default function App() {
   ];
 
   const handleDemoLogin = async () => {
-    // 🔥 Demo Mode: Local session only, no DB calls
     localStorage.setItem("token", "demo-token");
     localStorage.setItem("isDemo", "true");
     localStorage.setItem("userMode", userMode);
@@ -70,22 +91,6 @@ export default function App() {
 
     setUserMode(userMode);
     setCurrentPage("dashboard");
-    window.scrollTo(0, 0);
-  };
-
-  const handleNavigate = (page: string) => {
-    if (page === "demo-login") {
-      handleDemoLogin();
-      return;
-    }
-    
-    if (page === "login" && localStorage.getItem("token")) {
-      // If already logged in and trying to go to login page, send to dashboard
-      setCurrentPage("dashboard");
-      return;
-    }
-
-    setCurrentPage(page);
     window.scrollTo(0, 0);
   };
 
@@ -150,6 +155,26 @@ export default function App() {
 
   if (currentPage === "features") {
     return <FeaturesPage onNavigate={handleNavigate} userMode={userMode} onModeChange={handleModeChange} />;
+  }
+
+  if (currentPage === "blog") {
+    return <BlogPage onNavigate={handleNavigate} userMode={userMode} />;
+  }
+
+  if (currentPage === "article" && selectedArticle) {
+    return <ArticlePage article={selectedArticle} onNavigate={handleNavigate} userMode={userMode} />;
+  }
+
+  if (currentPage === "changelog") {
+    return <ChangelogPage onNavigate={handleNavigate} userMode={userMode} />;
+  }
+
+  if (currentPage === "roadmap") {
+    return <RoadmapPage onNavigate={handleNavigate} userMode={userMode} />;
+  }
+
+  if (currentPage === "security") {
+    return <SecurityPage onNavigate={handleNavigate} userMode={userMode} />;
   }
 
   // Protected pages layout

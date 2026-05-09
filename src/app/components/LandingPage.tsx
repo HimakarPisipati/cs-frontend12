@@ -690,11 +690,17 @@ export function LandingPage({ onNavigate, userMode = "student", onModeChange }: 
 
             <div>
               <h3 className="font-semibold text-white mb-4">Company</h3>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-              </ul>
+              <div className="grid grid-cols-2 gap-x-8 text-sm">
+                <ul className="space-y-2">
+                  <li><a href="#" className="hover:text-white transition-colors">About</a></li>
+                  <li><button onClick={() => onNavigate('blog')} className="hover:text-white transition-colors text-sm font-normal text-left">Blog</button></li>
+                  <li><button onClick={() => onNavigate('changelog')} className="hover:text-white transition-colors text-sm font-normal text-left">Changelog</button></li>
+                </ul>
+                <ul className="space-y-2">
+                  <li><button onClick={() => onNavigate('roadmap')} className="hover:text-white transition-colors text-sm font-normal text-left">Roadmap</button></li>
+                  <li><button onClick={() => onNavigate('security')} className="hover:text-white transition-colors text-sm font-normal text-left">Security</button></li>
+                </ul>
+              </div>
             </div>
 
             <div>
