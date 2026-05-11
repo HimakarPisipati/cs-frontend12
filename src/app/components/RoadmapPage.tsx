@@ -129,26 +129,35 @@ export function RoadmapPage({ onNavigate, userMode = 'student' }: RoadmapPagePro
             </p>
           </div>
 
-          {/* Horizontal Roadmap Layout */}
-          <div className="relative overflow-x-auto pb-12 no-scrollbar">
-            {/* Connecting Line (Desktop) */}
-            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-800 -translate-y-1/2 hidden lg:block z-0"></div>
+          {/* Vertical Roadmap Layout */}
+          <div className="relative max-w-5xl mx-auto px-4 pb-12">
+            {/* Vertical Connecting Line */}
+            <div className="absolute left-10 md:left-12 top-0 bottom-0 w-0.5 bg-gradient-to-b from-transparent via-gray-200 dark:via-gray-800 to-transparent z-0"></div>
 
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-0 lg:min-w-max px-4">
+            <div className="space-y-12">
               {roadmapPhases.map((phase, index) => (
-                <div key={index} className="relative flex flex-col items-center lg:w-[350px] animate-fade-in-up" style={{ animationDelay: `${index * 150}ms`, animationFillMode: 'forwards' }}>
+                <div 
+                  key={index} 
+                  className="relative flex items-start gap-6 md:gap-10 animate-fade-in-up" 
+                  style={{ animationDelay: `${index * 150}ms`, animationFillMode: 'forwards' }}
+                >
                   
                   {/* Timeline Point */}
-                  <div className={`hidden lg:flex w-12 h-12 rounded-full border-4 border-white dark:border-gray-950 bg-gradient-to-br ${phase.accent} items-center justify-center z-10 shadow-lg mb-8 group hover:scale-110 transition-transform`}>
-                    <div className="w-3 h-3 bg-white rounded-full"></div>
+                  <div className="relative flex items-center justify-center w-12 h-12 md:w-16 md:h-16 shrink-0 z-10 mt-2">
+                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-4 border-white dark:border-gray-950 bg-gradient-to-br ${phase.accent} flex items-center justify-center shadow-lg group hover:scale-110 transition-transform`}>
+                      <div className="w-2.5 h-2.5 md:w-3 md:h-3 bg-white rounded-full"></div>
+                    </div>
                   </div>
 
                   {/* Card Section */}
-                  <Card className="w-full p-8 border-0 shadow-xl bg-white dark:bg-gray-800/50 backdrop-blur-md rounded-3xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 relative overflow-hidden">
+                  <Card className="flex-1 p-8 border-0 shadow-xl bg-white dark:bg-gray-800/50 backdrop-blur-md rounded-3xl hover:shadow-2xl transition-all duration-500 hover:-translate-x-2 relative overflow-hidden">
                      {/* Quarter Badge */}
                      <div className="flex justify-between items-center mb-6">
-                        <span className="text-xs font-black uppercase tracking-widest text-gray-400">{phase.quarter}</span>
-                        <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                        <div className="flex flex-col">
+                           <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{phase.phase}</span>
+                           <span className="text-sm font-black uppercase tracking-widest text-gray-900 dark:text-white">{phase.quarter}</span>
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
                           phase.status === 'In Development' ? 'bg-green-100 text-green-700' :
                           phase.status === 'Next Up' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
                         }`}>
@@ -156,24 +165,24 @@ export function RoadmapPage({ onNavigate, userMode = 'student' }: RoadmapPagePro
                         </div>
                      </div>
 
-                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{phase.title}</h3>
+                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{phase.title}</h3>
                      
-                     <div className="space-y-4">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {phase.items.map((item, idx) => (
-                          <div key={idx} className="flex gap-3">
-                             <div className="p-2 rounded-lg bg-gray-50 dark:bg-gray-900 shrink-0">
+                          <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-gray-50/50 dark:bg-gray-900/50 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-colors">
+                             <div className="p-3 rounded-xl bg-white dark:bg-gray-800 shadow-sm shrink-0 h-fit">
                                 {item.icon}
                              </div>
                              <div>
-                                <h4 className="text-sm font-bold text-gray-900 dark:text-white">{item.title}</h4>
-                                <p className="text-[10px] text-gray-500 dark:text-gray-400 leading-relaxed">{item.desc}</p>
+                                <h4 className="text-base font-bold text-gray-900 dark:text-white mb-1">{item.title}</h4>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{item.desc}</p>
                              </div>
                           </div>
                         ))}
                      </div>
 
                      {/* Phase Number Overlay */}
-                     <div className="absolute -bottom-4 -right-2 text-6xl font-black opacity-[0.03] dark:opacity-[0.08] italic select-none">
+                     <div className="absolute top-4 right-4 text-8xl font-black opacity-[0.02] dark:opacity-[0.05] italic select-none pointer-events-none">
                         {phase.phase.split(' ')[1]}
                      </div>
                   </Card>
