@@ -434,19 +434,20 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
             </div>
             <div className="flex items-center gap-3">
               {localStorage.getItem("isDemo") === "true" && (
-                <div className="hidden md:flex items-center gap-2">
-                  <Badge variant="outline" className="flex items-center gap-1.5 border-orange-200 bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800">
-                    <Sparkles className="w-3.5 h-3.5" />
+                <div className="hidden md:flex items-center gap-3">
+                  <Badge variant="outline" className="flex items-center gap-1.5 border-orange-200 bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800 h-9 px-3 rounded-xl">
+                    <Sparkles className="w-3.5 h-3.5 animate-pulse" />
                     Demo Mode
                   </Badge>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleLogout}
-                    className="text-[10px] font-bold text-orange-600 hover:text-orange-700 hover:bg-orange-100/50 dark:text-orange-400 dark:hover:bg-orange-900/30 flex items-center gap-1 px-2 h-6 rounded-full border border-orange-200/50 dark:border-orange-800/50 transition-all"
-                  >
-                    Exit Demo <X className="w-3 h-3" />
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button 
+                      onClick={handleLogout}
+                      className="bg-gradient-to-r from-orange-500 to-red-600 text-white border-0 px-4 h-9 rounded-xl font-bold text-xs shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 transition-all flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Exit Demo
+                    </Button>
+                  </motion.div>
                 </div>
               )}
 
