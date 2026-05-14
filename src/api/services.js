@@ -14,8 +14,19 @@ export const forgotPassword = (data) => API.post("/auth/forgot-password", data);
 export const resetPassword = (data) => API.post("/auth/reset-password", data);
 
 // ✅ NEW: Profile Management
-export const changePassword = (data) => API.put("/auth/change-password", data);
-export const deleteAccount = (data) => API.delete("/auth/delete-account", { data });
+export const changePassword = (data) => {
+  if (isDemo()) {
+    return Promise.reject({ response: { data: { message: "Action Restricted: You cannot change credentials while in Demo Mode. Please exit demo mode to manage your real account." } } });
+  }
+  return API.put("/auth/change-password", data);
+};
+
+export const deleteAccount = (data) => {
+  if (isDemo()) {
+    return Promise.reject({ response: { data: { message: "Action Restricted: Account deletion is disabled in Demo Mode." } } });
+  }
+  return API.delete("/auth/delete-account", { data });
+};
 export const updateProfile = (data) => {
   if (isDemo()) {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -41,8 +52,19 @@ export const switchMode = (data) => {
   }
   return API.post("/auth/switch-mode", data);
 };
-export const requestEmailChange = (data) => API.post("/auth/request-email-change", data);
-export const verifyEmailChange = (data) => API.post("/auth/verify-email-change", data);
+export const requestEmailChange = (data) => {
+  if (isDemo()) {
+    return Promise.reject({ response: { data: { message: "Action Restricted: Email changes are disabled in Demo Mode." } } });
+  }
+  return API.post("/auth/request-email-change", data);
+};
+
+export const verifyEmailChange = (data) => {
+  if (isDemo()) {
+    return Promise.reject({ response: { data: { message: "Action Restricted: Email verification is disabled in Demo Mode." } } });
+  }
+  return API.post("/auth/verify-email-change", data);
+};
 // Note: Axios requires body data for DELETE requests to be wrapped in { data: ... }
 
 // ✅ ALIASES (Backwards Compatibility)
