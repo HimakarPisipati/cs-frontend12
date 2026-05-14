@@ -434,10 +434,20 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
             </div>
             <div className="flex items-center gap-3">
               {localStorage.getItem("isDemo") === "true" && (
-                <Badge variant="outline" className="hidden md:flex items-center gap-1.5 border-orange-200 bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Demo Mode
-                </Badge>
+                <div className="hidden md:flex items-center gap-2">
+                  <Badge variant="outline" className="flex items-center gap-1.5 border-orange-200 bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Demo Mode
+                  </Badge>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleLogout}
+                    className="text-[10px] font-bold text-orange-600 hover:text-orange-700 hover:bg-orange-100/50 dark:text-orange-400 dark:hover:bg-orange-900/30 flex items-center gap-1 px-2 h-6 rounded-full border border-orange-200/50 dark:border-orange-800/50 transition-all"
+                  >
+                    Exit Demo <X className="w-3 h-3" />
+                  </Button>
+                </div>
               )}
 
               <div className="relative">

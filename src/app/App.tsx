@@ -84,7 +84,7 @@ export default function App() {
     localStorage.setItem("user", JSON.stringify({
       _id: "demo-user-id",
       name: "Demo User",
-      email: "demo@campispend.com",
+      email: "demo@campusspend.com",
       userMode: userMode,
       budgetModel: 'old',
     }));
