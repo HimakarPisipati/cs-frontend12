@@ -121,7 +121,9 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
           const budgetData = Array.isArray(budgetRes.data) ? budgetRes.data : [];
           
           const globalBudget = budgetData.find((b: any) => b.category?.toLowerCase() === "general");
-          const total = globalBudget ? (Number(globalBudget.amount) || Number(globalBudget.limit) || 0) : 0;
+          const total = globalBudget 
+            ? (Number(globalBudget.amount) || Number(globalBudget.limit) || 0) 
+            : budgetData.reduce((sum: number, b: any) => sum + (Number(b.amount) || Number(b.limit) || 0), 0);
           setTotalBudget(total);
 
           // 3. Fetch Dues

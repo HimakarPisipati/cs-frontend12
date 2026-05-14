@@ -13,6 +13,7 @@ const getDB = () => {
         { _id: 't2', note: 'Freelance Work', amount: 5000, type: 'income', category: 'Work', date: new Date().toISOString(), paymentMethod: 'bank' }
       ],
       budgets: [
+        { _id: 'b0', category: 'General', amount: 5000, spent: 150 },
         { _id: 'b1', category: 'Food', amount: 3000, spent: 150 },
         { _id: 'b2', category: 'Entertainment', amount: 2000, spent: 0 }
       ],
