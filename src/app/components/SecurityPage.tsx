@@ -1,4 +1,4 @@
-import { ArrowLeft, Shield, Lock, EyeOff, Key, Database, ShieldCheck, Fingerprint, RefreshCcw, Bell, Smartphone, Globe, FileCheck, Target, Zap } from "lucide-react";
+import { ArrowLeft, Shield, Lock, EyeOff, Key, Database, ShieldCheck, Fingerprint, RefreshCcw, Bell, Smartphone, Globe, FileCheck, Target, Zap, Brain } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 
@@ -34,6 +34,12 @@ export function SecurityPage({ onNavigate, userMode = 'student' }: SecurityPageP
       desc: "Secure, stateless authentication using JSON Web Tokens ensures your session remains private and protected.",
       icon: <Key className="w-8 h-8 text-amber-500" />,
       tag: "Access"
+    },
+    {
+      title: "AI Safety & Data Privacy",
+      desc: "Financial data is decrypted on-the-fly only when needed for AI analysis (Scanner/Chat). We use enterprise-grade Google Gemini AI with secure data protocols.",
+      icon: <Brain className="w-8 h-8 text-indigo-500" />,
+      tag: "Intelligence"
     }
   ];
 

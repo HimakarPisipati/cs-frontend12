@@ -10,7 +10,12 @@ import {
   BarChart3,
   ArrowLeft,
   GraduationCap,
-  Briefcase
+  Briefcase,
+  Sparkles,
+  Scan,
+  MessageSquare,
+  Activity,
+  Zap
 } from "lucide-react";
 
 interface FeaturesPageProps {
@@ -107,9 +112,16 @@ const TiltCard = ({ feature, isEmp }: { feature: any, isEmp: boolean }) => {
         
         {/* 3D Floating Text Container */}
         <div className="relative z-10" style={{ transform: "translateZ(60px)", transition: "transform 0.2s ease-out" }}>
-          <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white mb-4 drop-shadow-sm tracking-tight">
-            {feature.title}
-          </h3>
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className="text-2xl font-extrabold text-gray-900 dark:text-white drop-shadow-sm tracking-tight">
+              {feature.title}
+            </h3>
+            {feature.isAI && (
+              <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-[10px] font-black text-white uppercase tracking-widest shadow-sm">
+                PRO AI
+              </span>
+            )}
+          </div>
           <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg font-medium drop-shadow-sm">
             {feature.description}
           </p>
@@ -149,7 +161,35 @@ export function FeaturesPage({ onNavigate, userMode, onModeChange }: FeaturesPag
     if (onModeChange) onModeChange(mode);
   };
 
+  const aiFeatures = [
+    {
+      icon: <Scan className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />,
+      title: "AI Receipt Scanner",
+      description: "Stop typing, start scanning. Use advanced OCR to automatically extract merchant, date, and items from any photo of a bill or receipt.",
+      isAI: true
+    },
+    {
+      icon: <MessageSquare className="w-10 h-10 text-purple-600 dark:text-purple-400" />,
+      title: "CampusSense Chat",
+      description: "Talk to your money. Ask CampusSense about your spending habits, affordability predictions, and personalized saving tips.",
+      isAI: true
+    },
+    {
+      icon: <Zap className="w-10 h-10 text-amber-600 dark:text-amber-400" />,
+      title: "Smart Categorization",
+      description: "AI that understands context. Our NLP engine automatically selects the right category for your expenses as you type your notes.",
+      isAI: true
+    },
+    {
+      icon: <Activity className="w-10 h-10 text-red-600 dark:text-red-400" />,
+      title: "Anomaly Detection",
+      description: "Proactive protection. Our AI identifies unusually high spending patterns and flags them immediately to help you stay in control.",
+      isAI: true
+    }
+  ];
+
   const studentFeatures = [
+    ...aiFeatures,
     {
       icon: <Wallet className="w-10 h-10 text-purple-600 dark:text-purple-400" />,
       title: "Smart Budgets",
@@ -173,6 +213,7 @@ export function FeaturesPage({ onNavigate, userMode, onModeChange }: FeaturesPag
   ];
 
   const employeeFeatures = [
+    ...aiFeatures,
     {
       icon: <DollarSign className="w-10 h-10 text-blue-600 dark:text-blue-400" />,
       title: "Comprehensive Salary Tracker",

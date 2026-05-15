@@ -22,6 +22,7 @@ import { ArticlePage } from "./components/ArticlePage";
 import { ChangelogPage } from "./components/ChangelogPage";
 import { RoadmapPage } from "./components/RoadmapPage";
 import { SecurityPage } from "./components/SecurityPage";
+import { ChatPage } from "./components/ChatPage";
 import { login } from "../api/services";
 
 export default function App() {
@@ -75,6 +76,7 @@ export default function App() {
     "analytics",
     "settings",
     "reminders",
+    "chat",
   ];
 
   const handleDemoLogin = async () => {
@@ -138,11 +140,11 @@ export default function App() {
   }
 
   if (currentPage === "privacy-policy") {
-    return <PrivacyPolicyPage onNavigate={handleNavigate} userMode={userMode} />;
+    return <PrivacyPolicyPage onNavigate={handleNavigate} userMode={userMode} onModeChange={handleModeChange} />;
   }
 
   if (currentPage === "help-center") {
-    return <HelpCenterPage onNavigate={handleNavigate} userMode={userMode} />;
+    return <HelpCenterPage onNavigate={handleNavigate} userMode={userMode} onModeChange={handleModeChange} />;
   }
 
   if (currentPage === "contact-us") {
@@ -191,6 +193,7 @@ export default function App() {
       {currentPage === "analytics" && <AnalyticsPage userMode={userMode} />}
       {currentPage === "settings" && <SettingsPage onNavigate={handleNavigate} userMode={userMode} onModeChange={handleModeChange} />}
       {currentPage === "reminders" && <RemindersPage userMode={userMode} />}
+      {currentPage === "chat" && <ChatPage />}
     </Dashboard>
   );
 }

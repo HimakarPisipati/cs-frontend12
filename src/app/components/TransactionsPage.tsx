@@ -16,7 +16,14 @@ import {
   Trash2,
   Pencil,
   ArrowDownRight,
-  ArrowUpRight
+  ArrowUpRight,
+  Camera,
+  Upload,
+  ScanLine,
+  CheckCircle2,
+  AlertCircle,
+  Sparkles,
+  ReceiptText
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { CategoryIcon } from "./CategoryIcon";
@@ -25,7 +32,7 @@ import { CustomModal } from "./ui/CustomModal";
 import { categories, getCategoryIcon, getCategoryColor, getCategories } from "../data/mockData";
 
 // ✅ Import backend services (Ensure deleteTransaction is exported from here)
-import { addTransaction, getTransactions, getBudgets, deleteTransaction, updateTransaction } from "../../api/services";
+import { addTransaction, getTransactions, getBudgets, deleteTransaction, updateTransaction, scanReceipt, categorizeExpense } from "../../api/services";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -107,6 +114,124 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
     };
     fetchBudget();
   }, []);
+
+  // ==============================
+  // 📷 RECEIPT SCANNER STATE
+  // ==============================
+  const [showScanModal, setShowScanModal] = useState(false);
+  const [scanFile, setScanFile] = useState<File | null>(null);
+  const [scanPreview, setScanPreview] = useState<string | null>(null);
+  const [scanState, setScanState] = useState<"idle" | "scanning" | "done" | "error">("idle");
+  const [scanResult, setScanResult] = useState<any>(null);
+  const [isCategorizing, setIsCategorizing] = useState(false);
+  const [lastCategorizedDesc, setLastCategorizedDesc] = useState("");
+  const [scanError, setScanError] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleScanFile = (file: File) => {
+    if (!file) return;
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      setScanError("Invalid file type. Please upload a JPEG, PNG, or WebP image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setScanError("Image too large. Maximum size is 5 MB.");
+      return;
+    }
+    setScanFile(file);
+    setScanError("");
+    const reader = new FileReader();
+    reader.onload = (e) => setScanPreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleScanFile(file);
+  };
+
+  const handleScanReceipt = async () => {
+    if (!scanFile) return;
+
+    // ✅ CHECK FOR DEMO MODE
+    const isDemo = localStorage.getItem("isDemo") === "true";
+
+    if (isDemo) {
+      setScanState("scanning");
+      setScanError("");
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Show the specific warning requested by the user
+      showAlert(
+        "Demo Mode Active",
+        "You can't use this feature in the demo mode. Create an account to use this feature. It will show demo receipt details here.",
+        "warning"
+      );
+
+      // Set demo results
+      setScanResult({
+        amount: 459,
+        merchant: "Starbucks Coffee",
+        date: new Date().toISOString().split("T")[0],
+        category: "Food",
+        confidence: 98,
+        items: [
+          { name: "Caramel Macchiato", price: 320 },
+          { name: "Chocolate Muffin", price: 139 }
+        ],
+        paymentMethod: "card"
+      });
+      setScanState("done");
+      return;
+    }
+
+    setScanState("scanning");
+    setScanError("");
+    try {
+      const formData = new FormData();
+      formData.append("receipt", scanFile);
+      const res = await scanReceipt(formData);
+      const data = res.data?.data || res.data;
+      setScanResult(data);
+      setScanState("done");
+    } catch (err: any) {
+      console.error("Scan error:", err);
+      setScanError(err?.response?.data?.message || "Failed to scan receipt. Please try again.");
+      setScanState("error");
+    }
+  };
+
+  const handleUseScanResult = () => {
+    if (!scanResult) return;
+    // Pre-fill the transaction form
+    if (scanResult.amount) setAmount(String(scanResult.amount));
+    if (scanResult.category) setCategory(scanResult.category);
+    if (scanResult.merchant) setDescription(scanResult.merchant);
+    if (scanResult.paymentMethod) {
+      const pmMap: Record<string, "Cash" | "UPI" | "Card"> = { cash: "Cash", upi: "UPI", card: "Card" };
+      setPaymentMethod(pmMap[scanResult.paymentMethod] || "UPI");
+    }
+    if (scanResult.date) setDate(scanResult.date);
+    setTransactionType("expense");
+    // Close scanner, open add modal
+    resetScanModal();
+    setShowAddModal(true);
+  };
+
+  const resetScanModal = () => {
+    setShowScanModal(false);
+    setScanFile(null);
+    setScanPreview(null);
+    setScanState("idle");
+    setScanResult(null);
+    setScanError("");
+    setIsDragging(false);
+  };
 
   // Add transaction form state
   const [amount, setAmount] = useState("");
@@ -240,6 +365,29 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
       showAlert("Error", err?.response?.data?.message || "Failed to save transaction ❌", "error");
     }
   };
+
+  // ✅ Smart Categorization Logic
+  useEffect(() => {
+    // Only categorize if it's a new transaction (not editing) and description is long enough
+    if (editingTransaction || !showAddModal || description.length < 3 || description === lastCategorizedDesc) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsCategorizing(true);
+        const res = await categorizeExpense(description, isEmployee ? "employee" : "student");
+        if (res.success && res.category) {
+          setCategory(res.category);
+          setLastCategorizedDesc(description);
+        }
+      } catch (err) {
+        console.error("Auto-categorization failed:", err);
+      } finally {
+        setIsCategorizing(false);
+      }
+    }, 1200); // 1.2s debounce
+
+    return () => clearTimeout(timer);
+  }, [description, showAddModal, editingTransaction, isEmployee]);
 
   // PDF Export
   const handleExportPDF = () => {
@@ -453,6 +601,14 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
             Export
           </Button>
           <Button
+            onClick={() => setShowScanModal(true)}
+            variant="outline"
+            className="border-amber-400 text-amber-600 hover:bg-amber-50 dark:border-amber-500 dark:text-amber-400 dark:hover:bg-amber-900/20"
+          >
+            <Camera className="w-4 h-4 mr-2" />
+            Scan Receipt
+          </Button>
+          <Button
             id="tutorial-transactions-add"
             onClick={() => setShowAddModal(true)}
             className={`bg-gradient-to-r ${gradient} ${gradientHover}`}
@@ -659,6 +815,35 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
                 />
               </div>
 
+              {/* Description */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="description">Description</Label>
+                  {isCategorizing && (
+                    <div className="flex items-center gap-1 text-[10px] font-medium text-purple-600 dark:text-purple-400 animate-pulse">
+                      <Sparkles className="w-3 h-3" />
+                      AI Categorizing...
+                    </div>
+                  )}
+                </div>
+                <div className="relative mt-2">
+                  <Input
+                    id="description"
+                    type="text"
+                    placeholder="e.g., Lunch at canteen"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className={`pr-10 transition-all ${isCategorizing ? "border-purple-400 ring-1 ring-purple-400/20" : ""}`}
+                    required
+                  />
+                  {description.length >= 3 && !isCategorizing && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Sparkles className="w-4 h-4 text-purple-400 opacity-50" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Category Selection */}
               <div>
                 <Label className="mb-3 block">Category</Label>
@@ -722,20 +907,6 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
                 </div>
               </div>
 
-              {/* Description */}
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  type="text"
-                  placeholder="e.g., Lunch at canteen"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="mt-2"
-                  required
-                />
-              </div>
-
               {/* Date */}
               <div>
                 <Label htmlFor="date">Date</Label>
@@ -772,6 +943,234 @@ export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps
               </div>
             </form>
           </Card>
+        </div>
+      )}
+
+      {/* ==============================
+          📷 RECEIPT SCANNER MODAL
+          ============================== */}
+      {showScanModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          >
+            <Card className="w-full max-w-lg bg-white dark:bg-gray-800 overflow-hidden shadow-2xl">
+              {/* Header */}
+              <div className="relative overflow-hidden p-6 pb-4">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-400/10 via-orange-500/10 to-red-500/10" />
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">AI Receipt Scanner</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Powered by Google Gemini Vision</p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={resetScanModal}>
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="p-6 pt-2 space-y-4">
+                {/* === IDLE STATE: Upload zone === */}
+                {scanState === "idle" && !scanPreview && (
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
+                    className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer
+                      ${isDragging
+                        ? "border-amber-400 bg-amber-50/50 dark:bg-amber-900/20 scale-[1.02]"
+                        : "border-gray-300 dark:border-gray-600 hover:border-amber-400 hover:bg-amber-50/30 dark:hover:bg-amber-900/10"
+                      }`}
+                    onClick={() => document.getElementById("receipt-upload")?.click()}
+                  >
+                    <input
+                      id="receipt-upload"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => { if (e.target.files?.[0]) handleScanFile(e.target.files[0]); }}
+                    />
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center">
+                      <Upload className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                      {isDragging ? "Drop your receipt here" : "Upload Receipt Image"}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Drag & drop or click to browse • JPEG, PNG, WebP • Max 5 MB
+                    </p>
+                  </div>
+                )}
+
+                {/* === IDLE STATE: Image preview (ready to scan) === */}
+                {scanState === "idle" && scanPreview && (
+                  <div className="space-y-4">
+                    <div className="relative rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                      <img src={scanPreview} alt="Receipt preview" className="w-full max-h-64 object-contain bg-gray-50 dark:bg-gray-900" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-2 right-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+                        onClick={() => { setScanFile(null); setScanPreview(null); }}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <Button
+                      onClick={handleScanReceipt}
+                      className="w-full h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold shadow-lg shadow-amber-500/25"
+                    >
+                      <ScanLine className="w-5 h-5 mr-2" />
+                      Scan with AI
+                    </Button>
+                  </div>
+                )}
+
+                {/* === SCANNING STATE: Animated progress === */}
+                {scanState === "scanning" && (
+                  <div className="space-y-4">
+                    <div className="relative rounded-2xl overflow-hidden border border-amber-300 dark:border-amber-600">
+                      <img src={scanPreview!} alt="Scanning..." className="w-full max-h-64 object-contain bg-gray-50 dark:bg-gray-900 opacity-70" />
+                      {/* Animated scan line */}
+                      <motion.div
+                        className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent shadow-[0_0_15px_rgba(251,191,36,0.6)]"
+                        animate={{ top: ["0%", "100%", "0%"] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-amber-500/10 to-transparent" />
+                    </div>
+                    <div className="flex items-center justify-center gap-3 py-2">
+                      <motion.div
+                        className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      />
+                      <p className="text-sm font-medium text-amber-600 dark:text-amber-400">Analyzing receipt with AI...</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* === DONE STATE: Results === */}
+                {scanState === "done" && scanResult && (
+                  <div className="space-y-4">
+                    {/* Confidence bar */}
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <span className="text-sm font-medium text-green-600 dark:text-green-400">Extraction Complete</span>
+                      <div className="flex-1" />
+                      <Badge variant="secondary" className={
+                        scanResult.confidence >= 80 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
+                        scanResult.confidence >= 50 ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" :
+                        "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                      }>
+                        {scanResult.confidence}% confidence
+                      </Badge>
+                    </div>
+
+                    {/* ✅ DEMO NOTICE */}
+                    {localStorage.getItem("isDemo") === "true" && (
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 animate-pulse">
+                        <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                        <p className="text-[10px] leading-tight font-semibold text-amber-700 dark:text-amber-300">
+                          This is demo receipt details, you can't use the actual feature in the demo mode
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Extracted data card */}
+                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 space-y-3 border border-gray-200 dark:border-gray-700">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Amount</p>
+                          <p className="text-xl font-bold text-gray-900 dark:text-gray-100">₹{scanResult.amount?.toLocaleString() || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Date</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">{scanResult.date || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Merchant</p>
+                          <p className="font-semibold text-gray-900 dark:text-gray-100">{scanResult.merchant || "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Category</p>
+                          <Badge variant="outline">{scanResult.category || "Other"}</Badge>
+                        </div>
+                      </div>
+
+                      {/* Line items */}
+                      {scanResult.items?.length > 0 && (
+                        <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
+                            <ReceiptText className="w-3 h-3" /> Items Found
+                          </p>
+                          <div className="space-y-1">
+                            {scanResult.items.map((item: any, i: number) => (
+                              <div key={i} className="flex justify-between text-sm">
+                                <span className="text-gray-700 dark:text-gray-300">{item.name}</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">₹{item.price}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleUseScanResult}
+                        className="flex-1 h-12 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg shadow-green-500/25"
+                      >
+                        <CheckCircle2 className="w-5 h-5 mr-2" />
+                        Use This Data
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => { setScanState("idle"); setScanFile(null); setScanPreview(null); setScanResult(null); }}
+                        className="h-12"
+                      >
+                        Rescan
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* === ERROR STATE === */}
+                {scanState === "error" && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                      <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+                      <p className="text-sm text-red-700 dark:text-red-300">{scanError}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => { setScanState("idle"); setScanError(""); }}
+                      className="w-full h-10"
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                )}
+
+                {/* Inline upload error */}
+                {scanError && scanState === "idle" && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                    <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                    <p className="text-xs text-red-600 dark:text-red-400">{scanError}</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </motion.div>
         </div>
       )}
 

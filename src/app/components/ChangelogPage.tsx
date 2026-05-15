@@ -12,6 +12,18 @@ export function ChangelogPage({ onNavigate, userMode = 'student' }: ChangelogPag
 
   const changelogData = [
     {
+      version: "v2.0.0",
+      date: "May 2026",
+      title: "The AI Revolution",
+      description: "Our biggest update ever. We've integrated Google Gemini AI to transform how you manage your money.",
+      updates: [
+        { type: 'feature', text: "AI Receipt Scanner: Snap photos to auto-fill transactions", icon: <FileText className="w-4 h-4" /> },
+        { type: 'feature', text: "CampusSense: Your new conversational AI financial guide", icon: <Star className="w-4 h-4" /> },
+        { type: 'feature', text: "Smart Categorization: Auto-selects categories as you type", icon: <Zap className="w-4 h-4" /> },
+        { type: 'feature', text: "Predictive Spending & AI Anomaly Detection", icon: <Shield className="w-4 h-4" /> }
+      ]
+    },
+    {
       version: "v1.4.0",
       date: "May 2026",
       title: "The Mobile Revolution",

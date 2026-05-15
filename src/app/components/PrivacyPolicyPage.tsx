@@ -19,6 +19,7 @@ import {
 interface PrivacyPolicyPageProps {
   onNavigate: (page: string) => void;
   userMode?: string;
+  onModeChange?: (mode: string) => void;
 }
 
 interface SectionProps {
@@ -61,12 +62,16 @@ function PolicySection({ icon, title, children, defaultOpen = false, isEmp = fal
   );
 }
 
-export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyPolicyPageProps) {
+export function PrivacyPolicyPage({ onNavigate, userMode = "student", onModeChange }: PrivacyPolicyPageProps) {
   const isEmp = userMode === "employee";
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark") ||
       localStorage.getItem("theme") !== "light";
   });
+
+  const toggleMode = (mode: 'student' | 'employee') => {
+    if (onModeChange) onModeChange(mode);
+  };
 
   useEffect(() => {
     if (isDark) {
@@ -83,65 +88,83 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
   }, []);
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${isEmp ? 'from-blue-50 via-cyan-50 to-green-50' : 'from-purple-50 via-blue-50 to-green-50'} dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 transition-colors duration-300`}>
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate(localStorage.getItem("token") ? "settings" : "landing")}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white -ml-2"
+    <div className={`min-h-screen relative bg-[#fafafa] dark:bg-gray-950 transition-colors duration-500 overflow-x-hidden`}>
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => onNavigate("landing")}
+                className="hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
               >
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Back
+                <ArrowLeft className="w-6 h-6 text-gray-700 dark:text-gray-300" />
               </Button>
-              <div className="h-6 w-px bg-gray-300 dark:bg-gray-700" />
-              <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 bg-gradient-to-br ${isEmp ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-lg flex items-center justify-center`}>
-                  <Wallet className="w-5 h-5 text-white" />
+              <div 
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => onNavigate("landing")}
+              >
+                <div className={`w-10 h-10 bg-gradient-to-br ${isEmp ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-xl flex items-center justify-center`}>
+                  <Wallet className="w-6 h-6 text-white" />
                 </div>
-                <span className={`text-lg font-bold bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} bg-clip-text text-transparent`}>
+                <span className={`text-xl font-bold bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} bg-clip-text text-transparent`}>
                   {isEmp ? 'CampusSpend Pro' : 'CampusSpend'}
                 </span>
               </div>
             </div>
-            <button
-              onClick={() => setIsDark(!isDark)}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-yellow-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+
+            {/* Mode Toggle Switch */}
+            <div className="flex items-center bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-full p-1 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+              <button
+                onClick={() => toggleMode('student')}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${!isEmp 
+                  ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md transform scale-105' 
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+              >
+                Student
+              </button>
+              <button
+                onClick={() => toggleMode('employee')}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${isEmp 
+                  ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md transform scale-105' 
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+              >
+                Professional
+              </button>
+            </div>
           </div>
         </div>
       </nav>
 
       {/* Hero Header */}
-      <section className="relative overflow-hidden py-16 lg:py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 ${isEmp ? 'bg-blue-100 dark:bg-blue-900/40' : 'bg-purple-100 dark:bg-purple-900/40'} rounded-full mb-6`}>
-            <Shield className={`w-4 h-4 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />
-            <span className={`text-sm ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'} font-medium`}>Your Privacy Matters</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Privacy Policy
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            We are committed to protecting your personal information and your right to privacy. 
-            Here's everything you need to know about how we handle your data.
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-500 mt-4">
-            Last updated: April 29, 2026
-          </p>
+      <div className="pt-40 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center relative z-10">
+        <div className={`inline-flex items-center gap-2 px-4 py-2 ${isEmp ? 'bg-blue-100 dark:bg-blue-900/40' : 'bg-purple-100 dark:bg-purple-900/40'} rounded-full mb-8`}>
+          <Shield className={`w-4 h-4 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />
+          <span className={`text-xs font-bold uppercase tracking-widest ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`}>Your Privacy Matters</span>
         </div>
+        <h1 className="text-5xl lg:text-7xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-6">
+          Privacy Policy.<br/>
+          <span className={`bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-500' : 'from-purple-600 to-blue-500'} bg-clip-text text-transparent`}>
+            Built on Trust.
+          </span>
+        </h1>
+        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          We are committed to protecting your personal information. Here's everything you need to know about how we handle and protect your financial data.
+        </p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mt-6 font-medium">
+          Last updated: April 29, 2026
+        </p>
+      </div>
 
-        {/* Decorative gradients */}
-        <div className={`absolute top-0 left-1/4 w-72 h-72 ${isEmp ? 'bg-blue-300 dark:bg-blue-800' : 'bg-purple-300 dark:bg-purple-800'} rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-15 animate-pulse`} />
-        <div className={`absolute top-10 right-1/4 w-72 h-72 ${isEmp ? 'bg-cyan-300 dark:bg-cyan-800' : 'bg-blue-300 dark:bg-blue-800'} rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl opacity-15 animate-pulse delay-1000`} />
-      </section>
+      {/* Background Decorative Elements */}
+      <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className={`absolute top-0 -left-[10%] w-[50vw] h-[50vw] rounded-full blur-[120px] opacity-10 
+          ${isEmp ? 'bg-blue-400' : 'bg-purple-400'}`}></div>
+        <div className={`absolute top-[40%] -right-[10%] w-[60vw] h-[60vw] rounded-full blur-[120px] opacity-10 
+          ${isEmp ? 'bg-cyan-400' : 'bg-blue-400'}`}></div>
+      </div>
 
       {/* Policy Content */}
       <section className="pb-20">
@@ -243,6 +266,37 @@ export function PrivacyPolicyPage({ onNavigate, userMode = "student" }: PrivacyP
               <li>
                 <strong>HTTPS:</strong> All data transmitted between your browser and our servers 
                 is encrypted using TLS/SSL.
+              </li>
+            </ul>
+          </PolicySection>
+
+          {/* AI Data Processing */}
+          <PolicySection
+            icon={<Shield className={`w-5 h-5 ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'}`} />}
+            title="5. AI Data Processing"
+            isEmp={isEmp}
+          >
+            <p>
+              CampusSpend uses Google Gemini AI for advanced features. Here is how your data is handled:
+            </p>
+            <ul className="list-disc list-inside space-y-2 ml-2 mt-2">
+              <li>
+                <strong>Receipt Scanning:</strong> When you upload a receipt, the image is processed 
+                to extract text and data. This data is only used to pre-fill your transaction form.
+              </li>
+              <li>
+                <strong>Conversational AI:</strong> Chat queries about your expenses are processed 
+                by providing necessary transaction context to the AI model to give you accurate advice.
+              </li>
+              <li>
+                <strong>Data Privacy:</strong> We use the Google Gemini API with enterprise-grade 
+                security. Your data is processed for the sole purpose of providing these AI features 
+                and is never shared with third parties for marketing.
+              </li>
+              <li className="text-amber-700 dark:text-amber-400 font-medium">
+                <strong>Data Usage Disclosure:</strong> Since we utilize the Gemini API Free tier, 
+                Google may use the data (your receipt text or chat messages) to help train and 
+                improve their AI models.
               </li>
             </ul>
           </PolicySection>

@@ -12,6 +12,25 @@ export function RoadmapPage({ onNavigate, userMode = 'student' }: RoadmapPagePro
 
   const roadmapPhases = [
     {
+      phase: "Phase 00",
+      quarter: "Q2 2026",
+      status: "Completed",
+      title: "The AI Revolution",
+      accent: "from-purple-600 to-indigo-600",
+      items: [
+        { 
+          title: "AI Receipt Scanner", 
+          desc: "OCR-powered extraction of transaction data from photos.", 
+          icon: <Scan className="w-6 h-6 text-purple-500" /> 
+        },
+        { 
+          title: "CampusSense Chatbot", 
+          desc: "Talk to your data and get financial advice with CampusSense.", 
+          icon: <Brain className="w-6 h-6 text-indigo-500" /> 
+        }
+      ]
+    },
+    {
       phase: "Phase 01",
       quarter: "Q3 2026",
       status: "In Development",
@@ -39,14 +58,14 @@ export function RoadmapPage({ onNavigate, userMode = 'student' }: RoadmapPagePro
       accent: "from-purple-500 to-blue-500",
       items: [
         { 
-          title: "AI Spending Predictions", 
-          desc: "ML algorithms that forecast your future expenses based on current habits.", 
-          icon: <Brain className="w-6 h-6 text-purple-500" />,
+          title: "Voice-Activated Logging", 
+          desc: "Add expenses just by speaking to the app.", 
+          icon: <Smartphone className="w-6 h-6 text-purple-500" />,
           isNew: true 
         },
         { 
-          title: "Smart Bill Categorization", 
-          desc: "Automated tagging and organization of every transaction using LLMs.", 
+          title: "Advanced ML Grouping", 
+          desc: "Automatically detect subscription patterns and recurring bills.", 
           icon: <Zap className="w-6 h-6 text-yellow-500" /> 
         }
       ]

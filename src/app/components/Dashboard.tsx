@@ -203,7 +203,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
   };
 
   // ✅ Calculate Dynamic Values
-  const { balance, monthlySpent, categoryData, weeklyData } = useMemo(() => {
+  const { balance, monthlySpent, categoryData, weeklyData, forecast } = useMemo(() => {
     const now = new Date();
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
@@ -252,9 +252,20 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
       balance: income - expense,
       monthlySpent: monthExpense,
       categoryData: Object.keys(catMap).map(key => ({ name: key, value: catMap[key] })),
-      weeklyData: Object.keys(last7DaysMap).map(key => ({ day: key, amount: last7DaysMap[key] }))
+      weeklyData: Object.keys(last7DaysMap).map(key => ({ day: key, amount: last7DaysMap[key] })),
+      forecast: (() => {
+        const dayOfMonth = now.getDate();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const dailyAvg = monthExpense / dayOfMonth;
+        const projected = dailyAvg * daysInMonth;
+        return {
+          projected,
+          isAtRisk: projected > totalBudget && totalBudget > 0,
+          overBudgetAmount: Math.max(0, projected - totalBudget)
+        };
+      })()
     };
-  }, [transactions]);
+  }, [transactions, totalBudget]);
 
   // Spend by payment method
   const spendByPayment = useMemo(() => {
@@ -291,6 +302,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
     { id: 'savings', icon: Target, label: 'Savings Goals' },
     { id: 'dues', icon: HandCoins, label: isEmployee ? 'EMI / Loans' : 'Dues' },
     { id: 'reminders', icon: CalendarDays, label: 'Reminders' },
+    { id: 'chat', icon: Sparkles, label: 'CampusSense' },
   ];
 
   const employeeOnlyItems = [
@@ -800,6 +812,61 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                 </Card>
               </div>
             )}
+
+            {/* AI Insights & Forecast */}
+            <div className="grid md:grid-cols-1 gap-6 mb-8">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <Card className={`p-6 border-0 shadow-xl overflow-hidden relative ${forecast?.isAtRisk ? 'bg-red-50 dark:bg-red-900/10' : 'bg-indigo-50 dark:bg-indigo-900/10'}`}>
+                  {/* Decorative Sparkles */}
+                  <div className="absolute top-[-20px] right-[-20px] opacity-10">
+                    <Sparkles size={120} className={forecast?.isAtRisk ? 'text-red-500' : 'text-indigo-500'} />
+                  </div>
+                  
+                  <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${forecast?.isAtRisk ? 'bg-red-500' : 'bg-indigo-500'}`}>
+                        <TrendingUp className="w-7 h-7 text-white" />
+                      </div>
+                      <div>
+                        <h3 className={`text-lg font-bold ${forecast?.isAtRisk ? 'text-red-700 dark:text-red-400' : 'text-indigo-700 dark:text-indigo-400'}`}>
+                          CampusSense Forecast
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Based on your spending habits this month</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row gap-8 items-center">
+                      <div className="text-center md:text-left">
+                        <p className="text-xs uppercase tracking-wider font-bold text-gray-400 mb-1">Projected Total</p>
+                        <p className={`text-2xl font-black ${forecast?.isAtRisk ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+                          {getCurrencySymbol()}{Math.round(forecast?.projected || 0).toLocaleString()}
+                        </p>
+                      </div>
+
+                      <div className="h-10 w-[1px] bg-gray-200 dark:bg-gray-700 hidden md:block" />
+
+                      <div className="max-w-[300px]">
+                        {forecast?.isAtRisk ? (
+                          <div className="flex items-start gap-2 text-red-600 dark:text-red-400">
+                            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                            <p className="text-sm font-medium">
+                              Warning: You are on track to exceed your budget by <span className="font-bold">{getCurrencySymbol()}{Math.round(forecast?.overBudgetAmount || 0).toLocaleString()}</span>. Consider cutting back!
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="flex items-start gap-2 text-green-600 dark:text-green-400">
+                            <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+                            <p className="text-sm font-medium">
+                              Great job! You are on track to stay within your budget this month. Keep it up!
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            </div>
 
             {/* Charts */}
             <div id="tutorial-charts" className="grid lg:grid-cols-2 gap-6 mb-8">

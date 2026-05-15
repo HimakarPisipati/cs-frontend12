@@ -22,7 +22,10 @@ import {
   Trash2,
   MoreVertical,
   Apple,
-  Play
+  Play,
+  ScanLine,
+  Bot,
+  TrendingUp
 } from "lucide-react";
 
 
@@ -82,47 +85,47 @@ export function LandingPage({ onNavigate, userMode = "student", onModeChange }: 
 
   const studentFeatures = [
     {
-      icon: <Wallet className="w-8 h-8 text-purple-500" />,
-      title: "Smart Budgets",
-      description: "Set monthly budgets per category and track your spending in real-time"
+      icon: <ScanLine className="w-8 h-8 text-purple-500" />,
+      title: "AI Receipt Scanner",
+      description: "Snap a photo and let CampusSense extract amounts, merchants, and items instantly."
     },
     {
-      icon: <PieChart className="w-8 h-8 text-blue-500" />,
-      title: "Expense Categories",
-      description: "Organize expenses into categories like food, transport, and entertainment"
+      icon: <Bot className="w-8 h-8 text-blue-500" />,
+      title: "CampusSense Chat",
+      description: "Ask your data anything. 'Can I afford a new phone?' Get instant AI financial advice."
     },
     {
-      icon: <TrendingDown className="w-8 h-8 text-green-500" />,
-      title: "Weekly Insights",
-      description: "Get smart insights about your spending patterns and saving opportunities"
+      icon: <Sparkles className="w-8 h-8 text-green-500" />,
+      title: "Smart Auto-Categorization",
+      description: "AI automatically organizes your expenses so you never have to manually select categories again."
     },
     {
-      icon: <FileText className="w-8 h-8 text-orange-500" />,
-      title: "PDF Export",
-      description: "Export your expense reports for sharing or personal records"
+      icon: <TrendingUp className="w-8 h-8 text-orange-500" />,
+      title: "Predictive Spending",
+      description: "Stay ahead with AI forecasts that warn you before you exceed your monthly student budget."
     }
   ];
 
   const employeeFeatures = [
     {
-      icon: <DollarSign className="w-8 h-8 text-blue-500" />,
-      title: "Salary Tracker",
-      description: "Track your monthly salary, deductions, PF, and net take-home pay"
+      icon: <ScanLine className="w-8 h-8 text-blue-500" />,
+      title: "AI Expense Auditor",
+      description: "Scan professional receipts and bills. Automate your expense logging with 99% accuracy."
     },
     {
-      icon: <BarChart3 className="w-8 h-8 text-cyan-500" />,
-      title: "Tax & Deductions",
-      description: "Monitor your tax, insurance, and PF deductions month by month"
+      icon: <Bot className="w-8 h-8 text-cyan-500" />,
+      title: "CampusSense Pro Chat",
+      description: "Conversational insights into your salary trends, EMI health, and professional savings goals."
     },
     {
-      icon: <Target className="w-8 h-8 text-green-500" />,
-      title: "EMI Manager",
-      description: "Track home loans, car loans, and education EMIs in one place"
+      icon: <Sparkles className="w-8 h-8 text-green-500" />,
+      title: "Intelligent Tax Tracker",
+      description: "Smart categorization of tax-deductible expenses to maximize your professional savings."
     },
     {
-      icon: <FileText className="w-8 h-8 text-orange-500" />,
-      title: "Financial Reports",
-      description: "Generate and export detailed salary and expense reports as PDF"
+      icon: <TrendingUp className="w-8 h-8 text-orange-500" />,
+      title: "Wealth Forecasts",
+      description: "Advanced AI models that predict your end-of-year savings based on current salary and spend."
     }
   ];
 
@@ -310,15 +313,13 @@ export function LandingPage({ onNavigate, userMode = "student", onModeChange }: 
               {isEmp ? 'Manage your salary.' : 'Track every rupee.'}
               <br />
               <span className={`bg-gradient-to-r ${isEmp ? 'from-blue-600 via-cyan-600 to-green-600' : 'from-purple-600 via-blue-600 to-green-600'} bg-clip-text text-transparent`}>
-                {isEmp ? 'Grow your wealth as a professional.' : 'Save more as a student.'}
+                Master every budget.
               </span>
             </h1>
 
             <p className="text-xl text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
-              {isEmp
-                ? 'Track salary, deductions, EMIs, and investments. Take full control of your professional finances.'
-                : 'The easiest way to manage your pocket money, hostel expenses, and student budget. Start building better money habits today.'
-              }
+              Experience the future of finance with <strong className={isEmp ? "text-blue-600 dark:text-blue-400" : "text-purple-600 dark:text-purple-400"}>CampusSense</strong>. 
+              Scan bills instantly, chat with your expenses, and build better habits with AI-powered predictions.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

@@ -17,12 +17,20 @@ import {
   Shield,
   Clock,
   User,
+  Sparkles,
+  Lock,
+  PlusCircle,
+  FileText,
+  Briefcase,
+  Bot,
+  X,
 } from "lucide-react";
 import { Input } from "./ui/input";
 
 interface HelpCenterPageProps {
   onNavigate: (page: string) => void;
   userMode?: string;
+  onModeChange?: (mode: string) => void;
 }
 
 interface FAQProps {
@@ -57,7 +65,7 @@ function FAQItem({ question, answer }: FAQProps) {
   );
 }
 
-export function HelpCenterPage({ onNavigate, userMode = "student" }: HelpCenterPageProps) {
+export function HelpCenterPage({ onNavigate, userMode = "student", onModeChange }: HelpCenterPageProps) {
   const isEmp = userMode === "employee";
   const [isDark, setIsDark] = useState(() => {
     return document.documentElement.classList.contains("dark") ||
@@ -140,6 +148,21 @@ export function HelpCenterPage({ onNavigate, userMode = "student" }: HelpCenterP
       question: "How do I manage EMIs and Loans?",
       answer: "Go to the 'Dues & EMIs' section. You can add your loan details, interest rates, and monthly installments. The app will calculate your remaining balance and show you your debt-to-income ratio.",
       category: "Reminders & Dues"
+    },
+    {
+      question: "How does the AI Receipt Scanner work?",
+      answer: "In the 'Transactions' page, click the 'Scan Receipt' button. Upload or take a photo of your bill. Our Google Gemini-powered AI will automatically extract the amount, merchant, date, and items to pre-fill the form for you.",
+      category: "AI & Smart Features"
+    },
+    {
+      question: "What can I ask CampusSense?",
+      answer: "You can ask CampusSense natural language questions like 'How much did I spend on Zomato this month?' or 'Can I afford a 20,000 INR phone next month?'. It analyzes your real-time transaction and budget data to give you personalized financial advice.",
+      category: "AI & Smart Features"
+    },
+    {
+      question: "How does Smart Categorization work?",
+      answer: "As you type a description in the 'Add Transaction' modal (e.g., 'Uber ride'), the AI automatically detects the context and selects the most appropriate category (e.g., 'Transport') for you, saving you extra clicks.",
+      category: "AI & Smart Features"
     }
   ];
 
@@ -167,86 +190,146 @@ export function HelpCenterPage({ onNavigate, userMode = "student" }: HelpCenterP
       title: "Reminders & Dues",
       description: "How to set up and manage bill reminders and payment tracking.",
       count: faqs.filter(f => f.category === "Reminders & Dues").length
+    },
+    {
+      icon: <Sparkles className="w-6 h-6 text-indigo-600" />,
+      title: "AI & Smart Features",
+      description: "Learn how to use our AI Scanner, Financial Chatbot, and Predictive Insights.",
+      count: faqs.filter(f => f.category === "AI & Smart Features").length
     }
   ];
 
   const filteredFaqs = faqs.filter(faq => {
-    const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 2); // Only match words longer than 2 chars (ignores "the", "is", etc.)
+    const matchesSearch = searchTerms.length === 0 || searchTerms.some(term => 
+      faq.question.toLowerCase().includes(term) || 
+      faq.answer.toLowerCase().includes(term) ||
+      faq.category.toLowerCase().includes(term)
+    );
+    
+    // If user is searching, ignore category filter unless they specifically clicked it AFTER searching
     const matchesCategory = selectedCategory ? faq.category === selectedCategory : true;
     return matchesSearch && matchesCategory;
   });
 
-  const filteredCategories = categories.filter(cat =>
-    cat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    cat.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    // Auto-clear category when typing to search the whole database
+    if (value.length > 0 && selectedCategory) {
+      setSelectedCategory(null);
+    }
+  };
+
+  const filteredCategories = categories.filter(cat => {
+    const searchTerms = searchQuery.toLowerCase().split(' ').filter(term => term.length > 0);
+    return searchTerms.length === 0 || searchTerms.some(term => 
+      cat.title.toLowerCase().includes(term) ||
+      cat.description.toLowerCase().includes(term)
+    );
+  });
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${isEmp ? 'from-blue-50 via-cyan-50 to-green-50' : 'from-purple-50 via-blue-50 to-green-50'} dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 transition-colors duration-300`}>
       {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 transition-colors">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => onNavigate(localStorage.getItem("token") ? "settings" : "landing")}
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white -ml-2"
+                className="text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
               >
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Back
+                <ArrowLeft className="w-5 h-5" />
               </Button>
-              <div className="h-6 w-px bg-gray-300 dark:bg-gray-700" />
-              <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 bg-gradient-to-br ${isEmp ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-lg flex items-center justify-center`}>
-                  <Wallet className="w-5 h-5 text-white" />
+              <div 
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => onNavigate("landing")}
+              >
+                <div className={`w-10 h-10 bg-gradient-to-br ${isEmp ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-xl flex items-center justify-center`}>
+                  <Wallet className="w-6 h-6 text-white" />
                 </div>
-                <span className={`text-lg font-bold bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} bg-clip-text text-transparent`}>
+                <span className={`text-xl font-bold bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} bg-clip-text text-transparent`}>
                   {isEmp ? 'CampusSpend Pro' : 'CampusSpend'}
                 </span>
               </div>
             </div>
-            <button
-              onClick={() => setIsDark(!isDark)}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-yellow-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+
+            {/* Mode Toggle Switch */}
+            <div className="flex items-center bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-full p-1 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+              <button
+                onClick={() => onModeChange && onModeChange('student')}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${!isEmp 
+                  ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md transform scale-105' 
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+              >
+                Student
+              </button>
+              <button
+                onClick={() => onModeChange && onModeChange('employee')}
+                className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${isEmp 
+                  ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md transform scale-105' 
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`}
+              >
+                Professional
+              </button>
+            </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Search Section */}
-      <section className="relative overflow-hidden py-16 lg:py-24 bg-white dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            How can we help you?
+      {/* Hero Header Section */}
+      <section className="relative overflow-hidden py-16 lg:py-24 bg-white dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-800 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-4 tracking-tight">
+            How can we help?
           </h1>
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Search for articles, guides, or FAQs..."
-              className="w-full h-14 pl-12 pr-4 text-lg rounded-2xl border-2 border-gray-200 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400 bg-white dark:bg-gray-800 shadow-xl"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <span className="text-sm text-gray-500 dark:text-gray-400">Popular:</span>
-            {['Budgeting', 'Security', 'Salary Tracking', 'Account Deletion'].map((tag) => (
-              <button 
-                key={tag} 
-                onClick={() => setSearchQuery(tag)}
-                className={`text-sm font-medium ${isEmp ? 'text-blue-600 dark:text-blue-400' : 'text-purple-600 dark:text-purple-400'} hover:underline`}
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-10">
+            Select a trending topic or browse by category to find instant answers.
+          </p>
+
+          {/* Trending Topics Chips */}
+          <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
+            {[
+              { label: "Reset Password", icon: <Lock className="w-3 h-3" /> },
+              { label: "Demo Mode", icon: <Zap className="w-3 h-3" /> },
+              { label: "Scan Receipt", icon: <Sparkles className="w-3 h-3" /> },
+              { label: "Add Transaction", icon: <PlusCircle className="w-3 h-3" /> },
+              { label: "Export PDF", icon: <FileText className="w-3 h-3" /> },
+              { label: "Security", icon: <Shield className="w-3 h-3" /> },
+              { label: "Salary Tracker", icon: <Briefcase className="w-3 h-3" /> },
+              { label: "CampusSense", icon: <Bot className="w-3 h-3" /> }
+            ].map((topic) => (
+              <button
+                key={topic.label}
+                onClick={() => {
+                  setSearchQuery(topic.label);
+                  setSelectedCategory(null);
+                  document.getElementById('faq-section')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300
+                  ${searchQuery === topic.label 
+                    ? `bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} text-white shadow-lg scale-105` 
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
+                  }`}
               >
-                {tag}
+                {topic.icon}
+                {topic.label}
               </button>
             ))}
           </div>
+
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery("")}
+              className="mt-8 text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 uppercase tracking-widest flex items-center justify-center gap-2 mx-auto"
+            >
+              <X className="w-3 h-3" />
+              Clear Selection
+            </button>
+          )}
         </div>
 
         {/* Decorative elements */}
