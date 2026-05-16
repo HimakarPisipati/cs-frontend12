@@ -5,7 +5,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Switch } from "./ui/switch";
 import {
-  User, Bell, Palette, Lock, Download, Trash2, Moon, Sun, X, AlertTriangle, ShieldCheck, KeyRound, Briefcase, GraduationCap, Star, Edit2, MessageSquare, Headphones, FileText, HelpCircle, ChevronRight, Wallet, Globe
+  User, Bell, Palette, Lock, Download, Trash2, Moon, Sun, X, AlertTriangle, ShieldCheck, KeyRound, Briefcase, GraduationCap, Star, Edit2, MessageSquare, Headphones, FileText, HelpCircle, ChevronRight, Wallet, Globe, Megaphone
 } from "lucide-react";
 import { COUNTRY_CURRENCY_MAP, CURRENCY_SYMBOLS } from "../../utils/currency";
 import { CustomModal } from "./ui/CustomModal";
@@ -109,6 +109,13 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
   const [emailOtp, setEmailOtp] = useState(["", "", "", "", "", ""]);
   const [originalEmail, setOriginalEmail] = useState("");
   const emailOtpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const [isAdmin, setIsAdmin] = useState(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      return user.role === 'admin';
+    } catch { return false; }
+  });
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
@@ -464,7 +471,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
       {/* 1. Profile Settings Card */}
       <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
         <div className="flex items-center gap-3 mb-6">
-          <div className={`w-12 h-12 bg-gradient-to-br ${userMode === 'employee' ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-full flex items-center justify-center`}>
+          <div className={`w-12 h-12 bg-gradient-to-br ${isAdmin ? 'from-slate-700 to-slate-900' : (userMode === 'employee' ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500')} rounded-full flex items-center justify-center`}>
             <User className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -491,45 +498,47 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label className="dark:text-gray-300">Country</Label>
-              <div className="relative mt-2">
-                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <select
-                  value={country}
-                  onChange={(e) => handleCountryChange(e.target.value)}
-                  className="w-full pl-10 pr-10 h-10 rounded-md border border-gray-200 bg-white text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all appearance-none cursor-pointer"
-                >
-                  {Object.keys(COUNTRY_CURRENCY_MAP).sort().map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          {!isAdmin && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="dark:text-gray-300">Country</Label>
+                <div className="relative mt-2">
+                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <select
+                    value={country}
+                    onChange={(e) => handleCountryChange(e.target.value)}
+                    className={`w-full pl-10 pr-10 h-10 rounded-md border border-gray-200 bg-white text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white outline-none focus:border-${isAdmin ? 'slate' : (userMode === 'employee' ? 'blue' : 'purple')}-500 focus:ring-2 focus:ring-${isAdmin ? 'slate' : (userMode === 'employee' ? 'blue' : 'purple')}-200 transition-all appearance-none cursor-pointer`}
+                  >
+                    {Object.keys(COUNTRY_CURRENCY_MAP).sort().map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <Label className="dark:text-gray-300">Currency</Label>
+                <div className="relative mt-2">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
+                    {CURRENCY_SYMBOLS[currency] || "₹"}
+                  </span>
+                  <Input
+                    value={currency}
+                    disabled
+                    className="pl-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 cursor-not-allowed opacity-70"
+                  />
                 </div>
               </div>
             </div>
-            
-            <div>
-              <Label className="dark:text-gray-300">Currency</Label>
-              <div className="relative mt-2">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">
-                  {CURRENCY_SYMBOLS[currency] || "₹"}
-                </span>
-                <Input
-                  value={currency}
-                  disabled
-                  className="pl-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 cursor-not-allowed opacity-70"
-                />
-              </div>
-            </div>
-          </div>
+          )}
 
           <Button
             onClick={handleSaveProfile}
             disabled={loading}
-            className={`bg-gradient-to-r ${userMode === 'employee' ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} text-white`}
+            className={`bg-gradient-to-r ${isAdmin ? 'from-slate-700 to-slate-900' : (userMode === 'employee' ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600')} text-white`}
           >
             {loading ? "Saving..." : "Save Changes"}
           </Button>
@@ -552,7 +561,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
           {/* Dark Mode Toggle */}
           <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl transition-colors">
             <div className="flex items-center gap-3">
-              {darkMode ? <Moon className={`w-5 h-5 ${userMode === 'employee' ? 'text-blue-400' : 'text-purple-400'}`} /> : <Sun className="w-5 h-5 text-orange-500" />}
+              {darkMode ? <Moon className={`w-5 h-5 ${isAdmin ? 'text-slate-400' : (userMode === 'employee' ? 'text-blue-400' : 'text-purple-400')}`} /> : <Sun className="w-5 h-5 text-orange-500" />}
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">Dark Mode</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Switch between light and dark theme</p>
@@ -577,59 +586,61 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
       </Card>
 
       {/* 2.5 Mode Switch Card */}
-      <Card id="tutorial-settings-mode" className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
-        <div className="flex items-center gap-3 mb-6">
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center ${userMode === 'employee' ? 'bg-gradient-to-br from-blue-500 to-cyan-500' : 'bg-gradient-to-br from-purple-500 to-blue-500'}`}>
-            {userMode === 'employee' ? <Briefcase className="w-6 h-6 text-white" /> : <GraduationCap className="w-6 h-6 text-white" />}
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">User Mode</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Switch between Student and Employee mode</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => {
-              if (userMode === 'student') return; // already student
-              setPendingMode('student');
-              setShowModeSwitchModal(true);
-            }}
-            className={`p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${userMode === 'student'
-              ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30'
-              : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-              }`}
-          >
-            <GraduationCap className={`w-6 h-6 ${userMode === 'student' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'}`} />
-            <div className="text-left">
-              <p className={`font-semibold ${userMode === 'student' ? 'text-purple-700 dark:text-purple-300' : 'text-gray-600 dark:text-gray-400'}`}>Student</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Pocket money, campus life</p>
+      {!isAdmin && (
+        <Card id="tutorial-settings-mode" className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
+          <div className="flex items-center gap-3 mb-6">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${userMode === 'employee' ? 'bg-gradient-to-br from-blue-500 to-cyan-500' : 'bg-gradient-to-br from-purple-500 to-blue-500'}`}>
+              {userMode === 'employee' ? <Briefcase className="w-6 h-6 text-white" /> : <GraduationCap className="w-6 h-6 text-white" />}
             </div>
-          </button>
-
-          <button
-            onClick={() => {
-              if (userMode === 'employee') return; // already employee
-              setPendingMode('employee');
-              setShowModeSwitchModal(true);
-            }}
-            className={`p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${userMode === 'employee'
-              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
-              : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-              }`}
-          >
-            <Briefcase className={`w-6 h-6 ${userMode === 'employee' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} />
-            <div className="text-left">
-              <p className={`font-semibold ${userMode === 'employee' ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>Employee</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Salary, tax & deductions</p>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">User Mode</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Switch between Student and Employee mode</p>
             </div>
-          </button>
-        </div>
-      </Card>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => {
+                if (userMode === 'student') return; // already student
+                setPendingMode('student');
+                setShowModeSwitchModal(true);
+              }}
+              className={`p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${userMode === 'student'
+                ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30'
+                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                }`}
+            >
+              <GraduationCap className={`w-6 h-6 ${userMode === 'student' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400'}`} />
+              <div className="text-left">
+                <p className={`font-semibold ${userMode === 'student' ? 'text-purple-700 dark:text-purple-300' : 'text-gray-600 dark:text-gray-400'}`}>Student</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Pocket money, campus life</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                if (userMode === 'employee') return; // already employee
+                setPendingMode('employee');
+                setShowModeSwitchModal(true);
+              }}
+              className={`p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${userMode === 'employee'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                }`}
+            >
+              <Briefcase className={`w-6 h-6 ${userMode === 'employee' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`} />
+              <div className="text-left">
+                <p className={`font-semibold ${userMode === 'employee' ? 'text-blue-700 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}>Employee</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Salary, tax & deductions</p>
+              </div>
+            </button>
+          </div>
+        </Card>
+      )}
       {/* 3. Security Section */}
       <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+          <div className={`w-12 h-12 bg-gradient-to-br ${isAdmin ? 'from-slate-700 to-slate-900' : 'from-blue-500 to-indigo-500'} rounded-full flex items-center justify-center`}>
             <Lock className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -650,23 +661,25 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
       </Card>
 
       {/* 4. Data & Privacy Section */}
-      <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
-        <div className="flex items-center gap-3 mb-6">
-          <div className={`w-12 h-12 bg-gradient-to-br ${userMode === 'employee' ? 'from-blue-500 to-cyan-500' : 'from-indigo-500 to-purple-500'} rounded-full flex items-center justify-center`}>
-            <Download className="w-6 h-6 text-white" />
+      {!isAdmin && (
+        <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
+          <div className="flex items-center gap-3 mb-6">
+            <div className={`w-12 h-12 bg-gradient-to-br ${userMode === 'employee' ? 'from-blue-500 to-cyan-500' : 'from-indigo-500 to-purple-500'} rounded-full flex items-center justify-center`}>
+              <Download className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Data & Privacy</h3>
           </div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Data & Privacy</h3>
-        </div>
 
-        <Button
-          variant="outline"
-          onClick={() => setShowDeleteModal(true)}
-          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:bg-gray-700 dark:hover:bg-red-900/20 dark:border-gray-600"
-        >
-          <Trash2 className="w-4 h-4 mr-2" />
-          Delete Account
-        </Button>
-      </Card>
+          <Button
+            variant="outline"
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:bg-gray-700 dark:hover:bg-red-900/20 dark:border-gray-600"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete Account
+          </Button>
+        </Card>
+      )}
 
       {/* 4.5 Support & Help Section */}
       <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
@@ -686,7 +699,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
             className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all group"
           >
             <div className="flex items-center gap-3">
-              <HelpCircle className={`w-5 h-5 ${userMode === 'employee' ? 'text-blue-500' : 'text-purple-500'}`} />
+              <HelpCircle className={`w-5 h-5 ${isAdmin ? 'text-slate-400' : (userMode === 'employee' ? 'text-blue-500' : 'text-purple-500')}`} />
               <div className="text-left">
                 <p className="font-medium text-gray-900 dark:text-white">Help Center</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Tutorials and guides</p>
@@ -700,10 +713,24 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
             className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all group"
           >
             <div className="flex items-center gap-3">
-              <Headphones className={`w-5 h-5 ${userMode === 'employee' ? 'text-blue-500' : 'text-purple-500'}`} />
+              <Headphones className={`w-5 h-5 ${isAdmin ? 'text-slate-400' : (userMode === 'employee' ? 'text-blue-500' : 'text-purple-500')}`} />
               <div className="text-left">
                 <p className="font-medium text-gray-900 dark:text-white">Contact Us</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Get in touch with support</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
+          </button>
+
+          <button
+            onClick={() => onNavigate('announcements')}
+            className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <Megaphone className={`w-5 h-5 ${isAdmin ? 'text-slate-400' : (userMode === 'employee' ? 'text-blue-500' : 'text-purple-500')}`} />
+              <div className="text-left">
+                <p className="font-medium text-gray-900 dark:text-white">Community Announcements</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Latest updates and news</p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
@@ -714,7 +741,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
             className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all group"
           >
             <div className="flex items-center gap-3">
-              <FileText className={`w-5 h-5 ${userMode === 'employee' ? 'text-blue-500' : 'text-purple-500'}`} />
+              <FileText className={`w-5 h-5 ${isAdmin ? 'text-slate-400' : (userMode === 'employee' ? 'text-blue-500' : 'text-purple-500')}`} />
               <div className="text-left">
                 <p className="font-medium text-gray-900 dark:text-white">Privacy Policy</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">Our terms and data usage</p>
@@ -1015,150 +1042,152 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
       )}
 
       {/* 5. Reviews Management Section */}
-      <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
-            <MessageSquare className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Community & Reviews</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Share your feedback and see what others say</p>
-          </div>
-        </div>
-
-        {/* Write a Review Sub-section */}
-        <div className="mb-8 p-6 bg-gray-50 dark:bg-gray-700/50 rounded-2xl border border-gray-100 dark:border-gray-700">
-          <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
-            {editingReviewId ? "Edit your review" : "Write a new review"}
-          </h4>
-          <form onSubmit={handleReviewSubmit} className="space-y-4">
-            <div className="flex gap-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => setRating(star)}
-                  className="focus:outline-none transition-transform active:scale-90"
-                >
-                  <Star
-                    className={`w-6 h-6 ${rating >= star ? "fill-yellow-400 text-yellow-400" : "text-gray-300 dark:text-gray-600"}`}
-                  />
-                </button>
-              ))}
+      {!isAdmin && (
+        <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg transition-colors">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center">
+              <MessageSquare className="w-6 h-6 text-white" />
             </div>
-            <Textarea
-              placeholder="Tell us what you think about CampusSpend..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="dark:bg-gray-800 dark:border-gray-700 min-h-[100px]"
-              required
-            />
-            <div className="flex gap-2">
-              <Button
-                type="submit"
-                disabled={loading}
-                className={`bg-gradient-to-r ${userMode === 'employee' ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} text-white`}
-              >
-                {loading ? "Submitting..." : (editingReviewId ? "Update Review" : "Post Review")}
-              </Button>
-              {editingReviewId && (
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Community & Reviews</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Share your feedback and see what others say</p>
+            </div>
+          </div>
+
+          {/* Write a Review Sub-section */}
+          <div className="mb-8 p-6 bg-gray-50 dark:bg-gray-700/50 rounded-2xl border border-gray-100 dark:border-gray-700">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-4">
+              {editingReviewId ? "Edit your review" : "Write a new review"}
+            </h4>
+            <form onSubmit={handleReviewSubmit} className="space-y-4">
+              <div className="flex gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRating(star)}
+                    className="focus:outline-none transition-transform active:scale-90"
+                  >
+                    <Star
+                      className={`w-6 h-6 ${rating >= star ? "fill-yellow-400 text-yellow-400" : "text-gray-300 dark:text-gray-600"}`}
+                    />
+                  </button>
+                ))}
+              </div>
+              <Textarea
+                placeholder="Tell us what you think about CampusSpend..."
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="dark:bg-gray-800 dark:border-gray-700 min-h-[100px]"
+                required
+              />
+              <div className="flex gap-2">
                 <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setEditingReviewId(null);
-                    setComment("");
-                    setRating(5);
-                  }}
-                  className="dark:text-gray-400"
+                  type="submit"
+                  disabled={loading}
+                  className={`bg-gradient-to-r ${isAdmin ? 'from-slate-700 to-slate-900' : (userMode === 'employee' ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600')} text-white`}
                 >
-                  Cancel
+                  {loading ? "Submitting..." : (editingReviewId ? "Update Review" : "Post Review")}
                 </Button>
+                {editingReviewId && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setEditingReviewId(null);
+                      setComment("");
+                      setRating(5);
+                    }}
+                    className="dark:text-gray-400"
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* View Reviews Sub-section */}
+          <div className="space-y-4">
+            <div className="flex gap-4 border-b border-gray-100 dark:border-gray-700 mb-4">
+              <button
+                onClick={() => setReviewTab('all')}
+                className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${reviewTab === 'all'
+                  ? (userMode === 'employee' ? 'border-blue-500 text-blue-600' : 'border-purple-500 text-purple-600')
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+              >
+                All Users ({allReviews.length})
+              </button>
+              <button
+                onClick={() => setReviewTab('me')}
+                className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${reviewTab === 'me'
+                  ? (userMode === 'employee' ? 'border-blue-500 text-blue-600' : 'border-purple-500 text-purple-600')
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+              >
+                Made by You ({myReviews.length})
+              </button>
+            </div>
+
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              {(reviewTab === 'all' ? allReviews : myReviews).length === 0 ? (
+                <div className="text-center py-8 text-gray-500 italic">
+                  No reviews found in this category.
+                </div>
+              ) : (
+                (reviewTab === 'all' ? allReviews : myReviews).map((rev) => (
+                  <div
+                    key={rev.id}
+                    className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700/50"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="flex gap-0.5 mb-1">
+                          {[...Array(rev.rating)].map((_, i) => (
+                            <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                          ))}
+                        </div>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mb-1">
+                          {rev.user_name} <span className="text-[10px] text-gray-500 dark:text-gray-400 font-normal ml-2 capitalize">({rev.user_mode})</span>
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 italic">"{rev.comment}"</p>
+                      </div>
+                      {currentUser && (currentUser._id === rev.user_id || currentUser.id === rev.user_id) && (
+
+                        <div className="flex gap-1 ml-4">
+                          <button
+                            onClick={() => handleEditReview(rev)}
+                            className="p-1.5 hover:bg-white dark:hover:bg-gray-600 rounded-lg text-gray-500 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteReview(rev.id)}
+                            className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg text-red-500 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
               )}
             </div>
-          </form>
-        </div>
-
-        {/* View Reviews Sub-section */}
-        <div className="space-y-4">
-          <div className="flex gap-4 border-b border-gray-100 dark:border-gray-700 mb-4">
-            <button
-              onClick={() => setReviewTab('all')}
-              className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${reviewTab === 'all'
-                ? (userMode === 'employee' ? 'border-blue-500 text-blue-600' : 'border-purple-500 text-purple-600')
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
-            >
-              All Users ({allReviews.length})
-            </button>
-            <button
-              onClick={() => setReviewTab('me')}
-              className={`pb-2 px-1 text-sm font-medium transition-colors border-b-2 ${reviewTab === 'me'
-                ? (userMode === 'employee' ? 'border-blue-500 text-blue-600' : 'border-purple-500 text-purple-600')
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
-            >
-              Made by You ({myReviews.length})
-            </button>
           </div>
-
-          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-            {(reviewTab === 'all' ? allReviews : myReviews).length === 0 ? (
-              <div className="text-center py-8 text-gray-500 italic">
-                No reviews found in this category.
-              </div>
-            ) : (
-              (reviewTab === 'all' ? allReviews : myReviews).map((rev) => (
-                <div
-                  key={rev.id}
-                  className="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-700/50"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex gap-0.5 mb-1">
-                        {[...Array(rev.rating)].map((_, i) => (
-                          <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                        ))}
-                      </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mb-1">
-                        {rev.user_name} <span className="text-[10px] text-gray-500 dark:text-gray-400 font-normal ml-2 capitalize">({rev.user_mode})</span>
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 italic">"{rev.comment}"</p>
-                    </div>
-                    {currentUser && (currentUser._id === rev.user_id || currentUser.id === rev.user_id) && (
-
-                      <div className="flex gap-1 ml-4">
-                        <button
-                          onClick={() => handleEditReview(rev)}
-                          className="p-1.5 hover:bg-white dark:hover:bg-gray-600 rounded-lg text-gray-500 transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteReview(rev.id)}
-                          className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg text-red-500 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {/* ✅ Email Verification Modal */}
       {showEmailOtpModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-white/20 animate-in zoom-in-95 duration-300">
             <div className="flex justify-between items-start mb-6">
-              <div className={`w-14 h-14 bg-gradient-to-br ${userMode === 'employee' ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500'} rounded-2xl flex items-center justify-center shadow-lg`}>
-                <ShieldCheck className="w-8 h-8 text-white" />
-              </div>
+            <div className={`w-14 h-14 bg-gradient-to-br ${isAdmin ? 'from-slate-700 to-slate-900' : (userMode === 'employee' ? 'from-blue-500 to-cyan-500' : 'from-purple-500 to-blue-500')} rounded-2xl flex items-center justify-center shadow-lg`}>
+              <ShieldCheck className="w-8 h-8 text-white" />
+            </div>
               <button 
                 onClick={() => {
                   setShowEmailOtpModal(false);
@@ -1202,7 +1231,7 @@ export function SettingsPage({ onNavigate, userMode = 'student', onModeChange }:
             <Button
               onClick={handleVerifyEmailChange}
               disabled={loading || emailOtp.some(d => !d)}
-              className={`w-full h-14 rounded-2xl text-lg font-bold shadow-xl transition-all active:scale-95 bg-gradient-to-r ${userMode === 'employee' ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} text-white`}
+              className={`w-full h-14 rounded-2xl text-lg font-bold shadow-xl transition-all active:scale-95 bg-gradient-to-r ${isAdmin ? 'from-slate-700 to-slate-900' : (userMode === 'employee' ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600')} text-white`}
             >
               {loading ? "Verifying..." : "Verify & Update Email"}
             </Button>

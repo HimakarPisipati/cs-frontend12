@@ -12,6 +12,7 @@ export const verifyOtp = (data) => API.post("/auth/verify-otp", data);
 export const resendOtp = (data) => API.post("/auth/resend-otp", data);
 export const forgotPassword = (data) => API.post("/auth/forgot-password", data);
 export const resetPassword = (data) => API.post("/auth/reset-password", data);
+export const adminVerifyOtp = (data) => API.post("/auth/admin-verify-otp", data);
 
 // ✅ NEW: Profile Management
 export const changePassword = (data) => {
@@ -215,6 +216,64 @@ export const chatWithAI = (message, history = []) => {
   }
   return API.post("/ai/chat", { message, history });
 };
+
+// ==============================
+// 🛠️ ADMIN
+// ==============================
+export const getAdminStats = () => {
+  if (isDemo()) return Promise.reject({ response: { data: { message: "Admin features are disabled in Demo Mode." } } });
+  return API.get("/admin/stats");
+};
+
+export const getAdminUsers = () => {
+  if (isDemo()) return Promise.reject({ response: { data: { message: "Admin features are disabled in Demo Mode." } } });
+  return API.get("/admin/users");
+};
+
+export const getAdminReviews = () => {
+  if (isDemo()) return Promise.reject({ response: { data: { message: "Admin features are disabled in Demo Mode." } } });
+  return API.get("/admin/reviews");
+};
+
+export const deleteAdminUser = (id) => {
+  if (isDemo()) return Promise.reject({ response: { data: { message: "Admin features are disabled in Demo Mode." } } });
+  return API.delete(`/admin/users/${id}`);
+};
+
+export const getAdminSupport = () => {
+  if (isDemo()) return Promise.reject({ response: { data: { message: "Admin features are disabled in Demo Mode." } } });
+  return API.get(`/admin/support?t=${new Date().getTime()}`);
+};
+
+export const respondToSupport = (id, data) => {
+  if (isDemo()) return Promise.reject({ response: { data: { message: "Admin features are disabled in Demo Mode." } } });
+  return API.patch(`/admin/support/${id}`, data);
+};
+
+export const broadcastNotification = (data) => {
+  if (isDemo()) return Promise.reject({ response: { data: { message: "Admin features are disabled in Demo Mode." } } });
+  return API.post("/admin/broadcast", data);
+};
+
+export const impersonateUser = (id) => {
+  if (isDemo()) return Promise.reject({ response: { data: { message: "Admin features are disabled in Demo Mode." } } });
+  return API.post(`/admin/impersonate/${id}`);
+};
+
+export const submitSupportTicket = (data) => {
+  return API.post("/support", data);
+};
+
+export const getUserSupportTickets = () => {
+  if (isDemo()) return Promise.resolve({ data: [] });
+  return API.get("/support/my-tickets");
+};
+
+export const getAnnouncements = () => {
+  if (isDemo()) return Promise.resolve({ data: [] });
+  return API.get("/support/announcements");
+};
+
 
 
 

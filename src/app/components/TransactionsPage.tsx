@@ -54,11 +54,17 @@ interface TransactionsPageProps {
 }
 
 export function TransactionsPage({ userMode = 'student' }: TransactionsPageProps) {
+  const [isAdmin, setIsAdmin] = useState(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      return user.role === 'admin';
+    } catch { return false; }
+  });
   const activeCategories = getCategories(userMode);
   const isEmployee = userMode === 'employee';
-  const gradient = isEmployee ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600';
-  const gradientHover = isEmployee ? 'hover:from-blue-700 hover:to-cyan-700' : 'hover:from-purple-700 hover:to-blue-700';
-  const paymentSelected = isEmployee ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-purple-500 bg-purple-50 dark:bg-purple-900/30';
+  const gradient = isAdmin ? 'from-slate-700 to-slate-900' : (isEmployee ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600');
+  const gradientHover = isAdmin ? 'hover:from-slate-800 hover:to-slate-950' : (isEmployee ? 'hover:from-blue-700 hover:to-cyan-700' : 'hover:from-purple-700 hover:to-blue-700');
+  const paymentSelected = isAdmin ? 'border-slate-500 bg-slate-50 dark:bg-slate-900/30' : (isEmployee ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30' : 'border-purple-500 bg-purple-50 dark:bg-purple-900/30');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<BackendTransaction | null>(null);
   const [filterType, setFilterType] = useState<"all" | "expense" | "income">("all");

@@ -31,12 +31,7 @@ export function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const quickChips = [
-    "How much did I spend on Food this month?",
-    "Show my highest expense last week.",
-    "Can I afford a 20,000 INR phone?",
-    "Summarize my budget status."
-  ];
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -195,22 +190,6 @@ export function ChatPage() {
 
         {/* Input Area */}
         <div className="p-4 bg-gray-50/50 dark:bg-gray-900/30 border-t border-gray-100 dark:border-gray-700">
-          {/* Quick Chips */}
-          {messages.length < 5 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {quickChips.map((chip, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSend(chip)}
-                  className="text-xs px-3 py-1.5 rounded-full bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors flex items-center gap-1 group"
-                >
-                  <Sparkles size={12} className="group-hover:rotate-12 transition-transform" />
-                  {chip}
-                </button>
-              ))}
-            </div>
-          )}
-
           <div className="flex gap-3">
             <div className="relative flex-1">
               <Input

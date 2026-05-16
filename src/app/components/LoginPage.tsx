@@ -4,7 +4,7 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
 import { Wallet, Mail, Lock, ArrowLeft, GraduationCap, Briefcase, Coins, Sparkles, TrendingUp } from "lucide-react";
-import { login } from "../../api/services";
+import { login, adminVerifyOtp } from "../../api/services";
 import { motion, AnimatePresence } from "motion/react";
 
 interface LoginPageProps {
@@ -17,6 +17,8 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
   const [password, setPassword] = useState("");
   const [selectedMode, setSelectedMode] = useState<'student' | 'employee'>(landingMode);
   const [loading, setLoading] = useState(false);
+  const [showAdminOTP, setShowAdminOTP] = useState(false);
+  const [adminOTP, setAdminOTP] = useState("");
 
   const isEmp = selectedMode === 'employee';
   const gradient = isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600';
@@ -37,29 +39,49 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
     try {
       const res = await login({ email, password, user_mode: selectedMode });
 
-      // 🔥 Save token and user
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userMode", res.data.userMode || "student");
-      localStorage.setItem("user", JSON.stringify({
-        _id: res.data._id,
-        name: res.data.name,
-        email: res.data.email,
-        phone: res.data.phone,
-        userMode: res.data.userMode || "student",
-        tutorialCompleted: res.data.tutorialCompleted || false,
-      }));
-
-      const pending = localStorage.getItem("pendingAction");
-      if (pending === "writeReview") {
-        onNavigate("landing");
-      } else {
-        onNavigate("dashboard");
+      if (res.data.requiresAdminOTP) {
+        setShowAdminOTP(true);
+        setLoading(false);
+        return;
       }
+
+      // 🔥 Save token and user
+      saveUserData(res.data);
+      onNavigate(localStorage.getItem("pendingAction") === "writeReview" ? "landing" : "dashboard");
     } catch (err: any) {
       alert(err?.response?.data?.message || "Login failed ❌");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAdminOTPVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await adminVerifyOtp({ email, otp: adminOTP });
+      saveUserData(res.data);
+      onNavigate("dashboard");
+    } catch (err: any) {
+      alert(err?.response?.data?.message || "Invalid Admin OTP ❌");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveUserData = (data: any) => {
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("userMode", data.userMode || "student");
+    localStorage.setItem("user", JSON.stringify({
+      _id: data._id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      userMode: data.userMode || "student",
+      tutorialCompleted: data.tutorialCompleted || false,
+      role: data.role || "user"
+    }));
   };
 
 
@@ -172,100 +194,162 @@ export function LoginPage({ onNavigate }: LoginPageProps) {
               </div>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
-              {/* Mode Selection */}
-              <div className="space-y-3">
-                <Label className="dark:text-gray-300 font-semibold ml-1">Sign in as</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="button"
-                    onClick={() => setSelectedMode("student")}
-                    className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-3 justify-center ${selectedMode === "student"
-                        ? "border-purple-500 bg-purple-50/50 dark:bg-purple-900/30 ring-4 ring-purple-100 dark:ring-purple-900/20"
-                        : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 bg-gray-50/30 dark:bg-gray-800/50"
-                      }`}
-                  >
-                    <GraduationCap className={`w-6 h-6 ${selectedMode === "student" ? "text-purple-600 dark:text-purple-400" : "text-gray-400"}`} />
-                    <span className={`font-bold ${selectedMode === "student" ? "text-purple-700 dark:text-purple-300" : "text-gray-500 dark:text-gray-400"}`}>Student</span>
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="button"
-                    onClick={() => setSelectedMode("employee")}
-                    className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-3 justify-center ${selectedMode === "employee"
-                        ? "border-blue-500 bg-blue-50/50 dark:bg-blue-900/30 ring-4 ring-blue-100 dark:ring-blue-900/20"
-                        : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 bg-gray-50/30 dark:bg-gray-800/50"
-                      }`}
-                  >
-                    <Briefcase className={`w-6 h-6 ${selectedMode === "employee" ? "text-blue-600 dark:text-blue-400" : "text-gray-400"}`} />
-                    <span className={`font-bold ${selectedMode === "employee" ? "text-blue-700 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"}`}>Employee</span>
-                  </motion.button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="dark:text-gray-300 font-semibold ml-1">Email</Label>
-                <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder={isEmp ? "name@company.com" : "student@college.edu"}
-                    className="pl-12 h-14 rounded-2xl dark:bg-gray-700/50 dark:text-white dark:border-gray-600 focus:ring-4 focus:ring-purple-100 dark:focus:ring-purple-900/20 transition-all"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password" className="dark:text-gray-300 font-semibold ml-1">Password</Label>
-                <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    className="pl-12 h-14 rounded-2xl dark:bg-gray-700/50 dark:text-white dark:border-gray-600 focus:ring-4 focus:ring-purple-100 dark:focus:ring-purple-900/20 transition-all"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => onNavigate("forgot-password")}
-                  className={`text-sm ${accentText} ${accentHover} font-bold hover:underline underline-offset-4`}
+            <AnimatePresence mode="wait">
+              {!showAdminOTP ? (
+                <motion.form 
+                  key="login-form"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  onSubmit={handleLogin} 
+                  className="space-y-6"
                 >
-                  Forgot Password?
-                </button>
-              </div>
-
-              <motion.div
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-              >
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full h-14 rounded-2xl text-lg font-bold shadow-xl bg-gradient-to-r ${gradient} ${gradientHover} transform transition-all active:scale-95 !text-white`}
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Signing in...</span>
+                  {/* Mode Selection */}
+                  <div className="space-y-3">
+                    <Label className="dark:text-gray-300 font-semibold ml-1">Sign in as</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="button"
+                        onClick={() => setSelectedMode("student")}
+                        className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-3 justify-center ${selectedMode === "student"
+                            ? "border-purple-500 bg-purple-50/50 dark:bg-purple-900/30 ring-4 ring-purple-100 dark:ring-purple-900/20"
+                            : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 bg-gray-50/30 dark:bg-gray-800/50"
+                          }`}
+                      >
+                        <GraduationCap className={`w-6 h-6 ${selectedMode === "student" ? "text-purple-600 dark:text-purple-400" : "text-gray-400"}`} />
+                        <span className={`font-bold ${selectedMode === "student" ? "text-purple-700 dark:text-purple-300" : "text-gray-500 dark:text-gray-400"}`}>Student</span>
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        type="button"
+                        onClick={() => setSelectedMode("employee")}
+                        className={`p-4 rounded-2xl border-2 transition-all flex items-center gap-3 justify-center ${selectedMode === "employee"
+                            ? "border-blue-500 bg-blue-50/50 dark:bg-blue-900/30 ring-4 ring-blue-100 dark:ring-blue-900/20"
+                            : "border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 bg-gray-50/30 dark:bg-gray-800/50"
+                          }`}
+                      >
+                        <Briefcase className={`w-6 h-6 ${selectedMode === "employee" ? "text-blue-600 dark:text-blue-400" : "text-gray-400"}`} />
+                        <span className={`font-bold ${selectedMode === "employee" ? "text-blue-700 dark:text-blue-300" : "text-gray-500 dark:text-gray-400"}`}>Employee</span>
+                      </motion.button>
                     </div>
-                  ) : "Sign In"}
-                </Button>
-              </motion.div>
-            </form>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="dark:text-gray-300 font-semibold ml-1">Email</Label>
+                    <div className="relative group">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder={isEmp ? "name@company.com" : "student@college.edu"}
+                        className="pl-12 h-14 rounded-2xl dark:bg-gray-700/50 dark:text-white dark:border-gray-600 focus:ring-4 focus:ring-purple-100 dark:focus:ring-purple-900/20 transition-all"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="dark:text-gray-300 font-semibold ml-1">Password</Label>
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••"
+                        className="pl-12 h-14 rounded-2xl dark:bg-gray-700/50 dark:text-white dark:border-gray-600 focus:ring-4 focus:ring-purple-100 dark:focus:ring-purple-900/20 transition-all"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => onNavigate("forgot-password")}
+                      className={`text-sm ${accentText} ${accentHover} font-bold hover:underline underline-offset-4`}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className={`w-full h-14 rounded-2xl text-lg font-bold shadow-xl bg-gradient-to-r ${gradient} ${gradientHover} transform transition-all active:scale-95 !text-white`}
+                    >
+                      {loading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          <span>Signing in...</span>
+                        </div>
+                      ) : "Sign In"}
+                    </Button>
+                  </motion.div>
+                </motion.form>
+              ) : (
+                <motion.form 
+                  key="otp-form"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  onSubmit={handleAdminOTPVerify} 
+                  className="space-y-6 text-center"
+                >
+                  <div className="p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl mb-6">
+                    <div className="w-12 h-12 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Lock className="w-6 h-6 text-red-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-red-700 dark:text-red-400 mb-1">Admin Verification</h3>
+                    <p className="text-sm text-red-600/80 dark:text-red-400/80">
+                      Extra security check: Please enter the 6-digit OTP sent to <b>{email}</b>
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="otp" className="dark:text-gray-300 font-semibold">Verification Code</Label>
+                    <Input
+                      id="otp"
+                      type="text"
+                      maxLength={6}
+                      placeholder="Enter OTP"
+                      className="h-14 text-center text-2xl tracking-widest font-bold rounded-2xl dark:bg-gray-700/50 dark:text-white dark:border-gray-600 focus:ring-4 focus:ring-red-100 dark:focus:ring-red-900/20 transition-all"
+                      value={adminOTP}
+                      onChange={(e) => setAdminOTP(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <Button
+                      type="submit"
+                      disabled={loading || adminOTP.length !== 6}
+                      className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white"
+                    >
+                      {loading ? "Verifying..." : "Verify & Access Admin"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => setShowAdminOTP(false)}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                    >
+                      Back to Login
+                    </Button>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
 
             <p className="mt-10 text-center text-gray-600 dark:text-gray-400 font-medium">
               Don't have an account?{" "}

@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Receipt, Wallet, Target, BarChart3, Settings,
   Bell, TrendingUp, TrendingDown, HandCoins, Briefcase,
   ChevronRight, Menu, X, Smartphone, CreditCard, Banknote, DollarSign, CalendarDays, RepeatIcon, Sparkles,
-  User, LogOut, Mail, CheckCircle2, AlertCircle, Info, Clock, Check
+  User, LogOut, Mail, CheckCircle2, AlertCircle, Info, Clock, Check, Shield
 } from "lucide-react";
 import { getCategoryIcon, getCategoryColor } from "../data/mockData";
 import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -30,25 +30,50 @@ interface DashboardProps {
 
 export function Dashboard({ onNavigate, currentPage, userMode = 'student', children }: DashboardProps) {
   const isEmployee = userMode === 'employee';
+  const [isAdmin, setIsAdmin] = useState(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      return user.role === 'admin';
+    } catch { return false; }
+  });
+  const accentColor = isAdmin ? 'slate' : (isEmployee ? 'blue' : 'purple');
 
-  // Theme colors based on mode
-  const theme = isEmployee
-    ? {
-      gradient: 'from-blue-500 to-cyan-500',
-      gradientHover: 'from-blue-600 to-cyan-600',
-      sidebarActive: 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg',
-      textGradient: 'from-blue-600 to-cyan-600',
-      bgGradient: 'from-blue-50 via-cyan-50 to-teal-50',
-      label: 'CampusSpend Pro',
+  // Theme colors based on mode and role
+  const theme = useMemo(() => {
+    if (isAdmin) {
+      return {
+        gradient: 'from-slate-800 to-slate-950',
+        gradientHover: 'from-slate-900 to-black',
+        sidebarActive: 'bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-xl border-l-4 border-indigo-500',
+        textGradient: 'from-slate-800 to-slate-950 dark:from-slate-100 dark:to-slate-300',
+        bgGradient: 'from-slate-50 via-gray-100 to-slate-200',
+        label: 'CampusSpend Admin',
+        accent: 'slate'
+      };
     }
-    : {
+
+    if (isEmployee) {
+      return {
+        gradient: 'from-blue-500 to-cyan-500',
+        gradientHover: 'from-blue-600 to-cyan-600',
+        sidebarActive: 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg',
+        textGradient: 'from-blue-600 to-cyan-600',
+        bgGradient: 'from-blue-50 via-cyan-50 to-teal-50',
+        label: 'CampusSpend Pro',
+        accent: 'blue'
+      };
+    }
+
+    return {
       gradient: 'from-purple-500 to-blue-500',
       gradientHover: 'from-purple-600 to-blue-600',
       sidebarActive: 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg',
       textGradient: 'from-purple-600 to-blue-600',
       bgGradient: 'from-purple-50 via-blue-50 to-green-50',
       label: 'CampusSpend',
+      accent: 'purple'
     };
+  }, [isEmployee, isAdmin]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // ✅ State for Real Data
@@ -73,6 +98,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
         const user = JSON.parse(userStr);
         if (user.name) setUserName(user.name);
         if (user.email) setUserEmail(user.email);
+        if (user.role === 'admin') setIsAdmin(true);
       } catch (e) { console.error("Error parsing user from localStorage", e); }
     }
     
@@ -84,6 +110,7 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
         // Sync back to localStorage
         const existing = JSON.parse(localStorage.getItem("user") || "{}");
         localStorage.setItem("user", JSON.stringify({ ...existing, ...res.data }));
+        if (res.data.role === 'admin') setIsAdmin(true);
       }
     }).catch(err => console.error("Error fetching user profile", err));
   }, []);
@@ -309,12 +336,17 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
     { id: 'salary', icon: Briefcase, label: 'Salary' },
   ];
 
-  const menuItems = [
-    ...baseMenuItems,
-    ...(isEmployee ? employeeOnlyItems : []),
-    { id: 'analytics', icon: BarChart3, label: 'Analytics' },
-    { id: 'settings', icon: Settings, label: 'Settings' },
-  ];
+  const menuItems = isAdmin 
+    ? [
+        { id: 'admin', icon: Shield, label: 'Admin Panel' },
+        { id: 'settings', icon: Settings, label: 'Settings' },
+      ]
+    : [
+        ...baseMenuItems,
+        ...(isEmployee ? employeeOnlyItems : []),
+        { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+        { id: 'settings', icon: Settings, label: 'Settings' },
+      ];
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -337,9 +369,16 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
               <div className={`w-10 h-10 bg-gradient-to-br ${theme.gradient} rounded-xl flex items-center justify-center`}>
                 <Wallet className="w-6 h-6 text-white" />
               </div>
-              <span className={`text-xl font-bold bg-gradient-to-r ${theme.textGradient} bg-clip-text text-transparent`}>
-                {theme.label}
-              </span>
+              <div className="flex flex-col">
+                <span className={`text-lg font-bold bg-gradient-to-r ${theme.textGradient} bg-clip-text text-transparent leading-none`}>
+                  CampusSpend
+                </span>
+                {isAdmin && (
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Administrator
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -601,8 +640,8 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                         </div>
                       </div>
                       
-                      <Badge className={`rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-wider border-0 text-white bg-gradient-to-r ${theme.gradient} shadow-sm`}>
-                        {isEmployee ? "Employee" : "Student"}
+                      <Badge className={`rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-wider border-0 text-white bg-gradient-to-r ${isAdmin ? 'from-red-600 to-orange-600' : theme.gradient} shadow-sm`}>
+                        {isAdmin ? "Admin" : (isEmployee ? "Employee" : "Student")}
                       </Badge>
                     </div>
 
@@ -723,8 +762,8 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
                   </motion.div>
                   <motion.div whileHover={{ scale: 1.05 }} className="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-600 transition-colors hover:border-purple-200 dark:hover:border-purple-800">
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`text-xs font-bold uppercase ${isEmployee ? 'text-cyan-500' : 'text-purple-500'}`}>Card</span>
-                      <CreditCard className={`w-5 h-5 ${isEmployee ? 'text-cyan-500' : 'text-purple-500'}`} />
+                      <span className={`text-xs font-bold uppercase ${isAdmin ? 'text-slate-500' : (isEmployee ? 'text-cyan-500' : 'text-purple-500')}`}>Card</span>
+                      <CreditCard className={`w-5 h-5 ${isAdmin ? 'text-slate-500' : (isEmployee ? 'text-cyan-500' : 'text-purple-500')}`} />
                     </div>
                     <p className="text-xl font-bold text-gray-900 dark:text-white">{getCurrencySymbol()}{spendByPayment.card.toLocaleString()}</p>
                   </motion.div>
@@ -735,13 +774,13 @@ export function Dashboard({ onNavigate, currentPage, userMode = 'student', child
               <Card className="p-6 bg-white/80 dark:bg-gray-800 backdrop-blur-sm border-0 shadow-lg">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <HandCoins className={`w-5 h-5 ${isEmployee ? 'text-blue-500' : 'text-purple-500'}`} />
+                    <HandCoins className={`w-5 h-5 ${isAdmin ? 'text-slate-500' : (isEmployee ? 'text-blue-500' : 'text-purple-500')}`} />
                     <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{isEmployee ? 'Active EMIs' : 'Pending Dues'}</h3>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className={`${isEmployee ? 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300' : 'text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300'}`}
+                    className={`${isAdmin ? 'text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300' : (isEmployee ? 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300' : 'text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300')}`}
                     onClick={() => onNavigate('dues')}
                   >
                     View All

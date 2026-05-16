@@ -23,15 +23,23 @@ import { ChangelogPage } from "./components/ChangelogPage";
 import { RoadmapPage } from "./components/RoadmapPage";
 import { SecurityPage } from "./components/SecurityPage";
 import { ChatPage } from "./components/ChatPage";
+import { AdminPage } from "./components/AdminPage";
+import { AnnouncementsPage } from "./components/AnnouncementsPage";
 import { login } from "../api/services";
 
 export default function App() {
   const token = localStorage.getItem("token");
 
-  // ✅ FIX 1: Default to "dashboard" if logged in
-  const [currentPage, setCurrentPage] = useState<string>(
-    token ? "dashboard" : "landing"
-  );
+  const [currentPage, setCurrentPage] = useState<string>(() => {
+    if (!token) return "landing";
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      return user.role === "admin" ? "admin" : "dashboard";
+    } catch (e) {
+      console.error("Error parsing user from localStorage:", e);
+      return "landing";
+    }
+  });
 
   // ✅ User Mode: student or employee
   const [userMode, setUserMode] = useState<"student" | "employee">("student");
@@ -48,8 +56,20 @@ export default function App() {
     }
     
     if (page === "login" && localStorage.getItem("token")) {
-      setCurrentPage("dashboard");
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      setCurrentPage(user.role === "admin" ? "admin" : "dashboard");
       return;
+    }
+
+    // 🛑 Admin Restriction
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      if (user.role === "admin" && page === "dashboard") {
+        setCurrentPage("admin");
+        return;
+      }
+    } catch (e) {
+      console.error("Error parsing user in navigation:", e);
     }
 
     setCurrentPage(page);
@@ -77,6 +97,7 @@ export default function App() {
     "settings",
     "reminders",
     "chat",
+    "admin",
   ];
 
   const handleDemoLogin = async () => {
@@ -179,6 +200,10 @@ export default function App() {
     return <SecurityPage onNavigate={handleNavigate} userMode={userMode} />;
   }
 
+  if (currentPage === "announcements") {
+    return <AnnouncementsPage onNavigate={handleNavigate} userMode={userMode} />;
+  }
+
   // Protected pages layout
   return (
     <Dashboard onNavigate={handleNavigate} currentPage={currentPage} userMode={userMode}>
@@ -194,6 +219,7 @@ export default function App() {
       {currentPage === "settings" && <SettingsPage onNavigate={handleNavigate} userMode={userMode} onModeChange={handleModeChange} />}
       {currentPage === "reminders" && <RemindersPage userMode={userMode} />}
       {currentPage === "chat" && <ChatPage />}
+      {currentPage === "admin" && <AdminPage />}
     </Dashboard>
   );
 }

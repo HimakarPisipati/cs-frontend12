@@ -18,7 +18,11 @@ import {
   Sun,
   Moon,
   CheckCircle2,
+  AlertCircle,
+  Shield
 } from "lucide-react";
+import { submitSupportTicket, getUserSupportTickets } from "../../api/services";
+import { Badge } from "./ui/badge";
 
 interface ContactUsPageProps {
   onNavigate: (page: string) => void;
@@ -36,11 +40,52 @@ export function ContactUsPage({ onNavigate, userMode = "student" }: ContactUsPag
     name: "",
     email: "",
     subject: "General Inquiry",
-    message: ""
+    message: "",
+    user_id: ""
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"send" | "tickets">("send");
+  const [myTickets, setMyTickets] = useState<any[]>([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setIsLoggedIn(true);
+        setFormData(prev => ({
+          ...prev,
+          name: user.name || "",
+          email: user.email || "",
+          user_id: user._id || user.id || ""
+        }));
+      } catch (e) {
+        console.error("Error parsing user for contact form", e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "tickets" && isLoggedIn) {
+      loadTickets();
+    }
+  }, [activeTab, isLoggedIn]);
+
+  const loadTickets = async () => {
+    setIsLoadingTickets(true);
+    try {
+      const res = await getUserSupportTickets();
+      setMyTickets(res.data || []);
+    } catch (error) {
+      console.error("Failed to load tickets", error);
+    } finally {
+      setIsLoadingTickets(false);
+    }
+  };
 
   useEffect(() => {
     if (isDark) {
@@ -56,16 +101,27 @@ export function ContactUsPage({ onNavigate, userMode = "student" }: ContactUsPag
     window.scrollTo(0, 0);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await submitSupportTicket(formData);
       setIsSubmitted(true);
-      setFormData({ name: "", email: "", subject: "General Inquiry", message: "" });
-    }, 1500);
+      const userStr = localStorage.getItem("user");
+      const user = userStr ? JSON.parse(userStr) : null;
+      setFormData({ 
+        name: user?.name || "", 
+        email: user?.email || "", 
+        subject: "General Inquiry", 
+        message: "",
+        user_id: user?._id || user?.id || ""
+      });
+    } catch (error: any) {
+      alert(error?.response?.data?.message || "Failed to send message. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactMethods = [
@@ -199,9 +255,85 @@ export function ContactUsPage({ onNavigate, userMode = "student" }: ContactUsPag
             </div>
 
             {/* Contact Form */}
+            {/* Contact Form & My Tickets */}
             <div className="lg:col-span-3">
+              {isLoggedIn && (
+                <div className="flex gap-2 mb-6 bg-white/50 dark:bg-gray-800/50 p-1 rounded-xl border border-gray-200 dark:border-gray-700 w-fit">
+                  <button
+                    onClick={() => setActiveTab("send")}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+                      activeTab === "send"
+                        ? `bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} text-white shadow-md`
+                        : "text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    Send Message
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("tickets")}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${
+                      activeTab === "tickets"
+                        ? `bg-gradient-to-r ${isEmp ? 'from-blue-600 to-cyan-600' : 'from-purple-600 to-blue-600'} text-white shadow-md`
+                        : "text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    My Replies
+                    {myTickets.some(t => t.status === 'resolved' && !t.read_by_user) && (
+                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                    )}
+                  </button>
+                </div>
+              )}
+
               <Card className="p-8 border-0 shadow-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-md relative overflow-hidden">
-                {isSubmitted ? (
+                {activeTab === "tickets" ? (
+                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                      <Shield className={`w-6 h-6 ${isEmp ? 'text-blue-600' : 'text-purple-600'}`} />
+                      Support History
+                    </h2>
+                    
+                    {isLoadingTickets ? (
+                      <div className="py-12 flex justify-center">
+                        <div className={`w-10 h-10 border-4 ${isEmp ? 'border-blue-500/20 border-t-blue-500' : 'border-purple-500/20 border-t-purple-500'} rounded-full animate-spin`}></div>
+                      </div>
+                    ) : (myTickets || []).length === 0 ? (
+                      <div className="py-12 text-center text-gray-500">
+                        <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                        <p>You haven't submitted any tickets yet.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                        {(myTickets || []).map((ticket) => (
+                          <div key={ticket.id} className="p-5 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700 hover:border-purple-500/30 transition-all">
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="flex items-center gap-2">
+                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                  ticket.status === 'pending' ? 'bg-orange-500/10 text-orange-600' : 'bg-green-500/10 text-green-600'
+                                }`}>
+                                  {ticket.status}
+                                </span>
+                                <h4 className="font-bold text-gray-900 dark:text-white">{ticket.subject}</h4>
+                              </div>
+                              <span className="text-[10px] text-gray-500">{new Date(ticket.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{ticket.message}</p>
+                            
+                            {ticket.admin_response && (
+                              <div className={`p-4 rounded-xl ${isEmp ? 'bg-blue-500/5 border-blue-500/10' : 'bg-purple-500/5 border-purple-500/10'} border mt-2 animate-in slide-in-from-top-2 duration-300`}>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Shield className={`w-3 h-3 ${isEmp ? 'text-blue-500' : 'text-purple-500'}`} />
+                                  <span className={`text-[10px] font-bold uppercase ${isEmp ? 'text-blue-500' : 'text-purple-500'}`}>Support Team Response</span>
+                                </div>
+                                <p className="text-sm text-gray-800 dark:text-gray-200 italic">"{ticket.admin_response}"</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : isSubmitted ? (
                   <div className="py-12 text-center space-y-6 animate-in fade-in zoom-in duration-500">
                     <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto text-green-600 dark:text-green-400">
                       <CheckCircle2 className="w-12 h-12" />
@@ -241,11 +373,15 @@ export function ContactUsPage({ onNavigate, userMode = "student" }: ContactUsPag
                           <Input
                             required
                             type="email"
+                            readOnly={isLoggedIn}
                             placeholder="name@email.com"
-                            className="h-12 bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700 focus:border-purple-500"
+                            className={`h-12 ${isLoggedIn ? 'bg-gray-100 dark:bg-gray-800/50 cursor-not-allowed text-gray-500' : 'bg-gray-50 dark:bg-gray-700/50'} border-gray-200 dark:border-gray-700 focus:border-purple-500`}
                             value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            onChange={(e) => !isLoggedIn && setFormData({ ...formData, email: e.target.value })}
                           />
+                          {isLoggedIn && (
+                            <p className="text-[10px] text-gray-500 ml-1">Using your registered account email.</p>
+                          )}
                         </div>
                       </div>
 
